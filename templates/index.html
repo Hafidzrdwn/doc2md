@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doc2Markdown & MD2Docs Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        code, pre, textarea.font-mono, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(0.995); }
+        }
+        .animate-subtle { animation: pulse-subtle 2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+    <!-- Top Navigation & Global Header -->
+    <header class="border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-sm tracking-tight text-white">DOC-TO-MARKDOWN</span>
+                        <span class="text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full">v2.0 • Offline Studio</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Selector Tabs -->
+            <div class="hidden sm:flex items-center bg-slate-950 border border-slate-800 p-1 rounded-xl gap-1 ml-4 text-xs font-medium">
+                <button id="tabModeDoc2Md" class="px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Dokumen ➔ Markdown
+                </button>
+                <button id="tabModeMd2Doc" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Markdown ➔ Dokumen Word (.docx)
+                </button>
+            </div>
+        </div>
+
+        <!-- Global Action Controls -->
+        <div class="flex items-center gap-3">
+            <div id="statsSummary" class="text-xs text-slate-400 hidden sm:flex items-center gap-4 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
+                <div>File: <span id="statFiles" class="font-mono text-slate-200 font-bold">0</span></div>
+                <div class="w-1 h-3 bg-slate-800 rounded"></div>
+                <div>Total Token: <span id="statTokens" class="font-mono text-emerald-400 font-bold">0</span></div>
+            </div>
+
+            <!-- Reset Button -->
+            <button id="globalResetBtn" title="Reset semua data dan form" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 bg-slate-800/80 hover:bg-rose-950/40 hover:text-rose-300 hover:border-rose-800/60 text-slate-300 transition shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Reset</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 p-6 flex flex-col gap-5 max-w-6xl w-full mx-auto">
+
+        <!-- =================================================================== -->
+        <!-- VIEW 1: DOKUMEN TO MARKDOWN -->
+        <!-- =================================================================== -->
+        <section id="viewDoc2Md" class="flex flex-col gap-5">
+            
+            <!-- Controls & Upload Area -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Dropzone (3 cols) -->
+                <div id="dropzone" class="md:col-span-3 relative overflow-hidden border-2 border-dashed border-slate-700 hover:border-sky-500 bg-slate-900/50 rounded-2xl p-7 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 group">
+                    <input type="file" id="fileInput" class="hidden" multiple accept=".pdf,.docx,.xlsx,.xls,.pptx,.csv,.txt,.json,.xml,.html,.md,.png,.jpg,.jpeg,.webp,.bmp" />
+                    
+                    <!-- Normal State Inside Dropzone -->
+                    <div id="dropzoneNormal" class="flex flex-col items-center gap-2 transition group-hover:scale-[1.01]">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shadow-inner group-hover:bg-sky-500/20 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-200">Klik atau seret dokumen ke sini <span class="text-sky-400 font-normal">(bisa banyak file sekaligus)</span></p>
+                        <p class="text-xs text-slate-400">Mendukung <span class="text-slate-300 font-medium">PDF, Word (.docx), Excel (.xlsx, .csv), PPTX, Teks, Gambar (.png, .jpg)</span></p>
+                    </div>
+
+                    <!-- Uploading Active State Inside Dropzone -->
+                    <div id="dropzoneLoading" class="hidden flex-col items-center justify-center py-2 gap-3 w-full max-w-md">
+                        <div class="w-10 h-10 border-3 border-sky-500/30 border-t-sky-400 rounded-full animate-spin"></div>
+                        <div class="w-full text-center">
+                            <p class="text-sm font-semibold text-sky-300" id="uploadStatusText">Sedang mengonversi dokumen...</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Mengekstrak teks, tabel, dan memetakan konteks visual gambar</p>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-sky-500 to-indigo-500 h-full w-2/3 animate-pulse rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chunking & Config Box (1 col) -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between text-xs space-y-3 shadow-lg">
+                    <div>
+                        <div class="flex items-center gap-1.5 font-semibold text-slate-200 mb-2">
+                            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                            Auto-Split / Chunking
+                        </div>
+                        <select id="chunkSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-sky-500 transition">
+                            <option value="0">Dokumen Utuh (No Split)</option>
+                            <option value="8000">Split tiap ~8,000 token</option>
+                            <option value="16000">Split tiap ~16,000 token</option>
+                            <option value="32000">Split tiap ~32,000 token</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                            Bagi dokumen panjang menjadi bagian-bagian terukur agar muat dalam jendela konteks LLM tanpa terpotong.
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Status Konversi:</span>
+                        <span id="quickStatusBadge" class="text-emerald-400 font-medium">Siap</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail File Terunggah (UX Cards List) -->
+            <div id="fileDetailsSection" class="hidden flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+                        <span>Daftar Dokumen Terunggah</span>
+                        <span id="fileDetailsCount" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700 font-mono">0</span>
+                    </h3>
+                    <span class="text-[11px] text-slate-400">Klik item untuk melihat atau menghapus dari antrean</span>
+                </div>
+                
+                <div id="fileCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- File cards will be rendered here dynamically -->
+                </div>
+            </div>
+
+            <!-- Result Workspace -->
+            <div id="workspace" class="hidden flex-1 flex flex-col gap-3 min-h-[500px]">
+                
+                <!-- Toolbar Row -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+                    <!-- File Tabs -->
+                    <div id="tabsContainer" class="flex gap-1.5 overflow-x-auto max-w-full sm:max-w-[55%] pb-1 scrollbar-thin"></div>
+
+                    <!-- Action Tools -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Preset Prompts -->
+                        <select id="promptPreset" class="bg-slate-950 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="raw">Raw Markdown</option>
+                            <option value="summarize">Wrap: Rangkuman & Action Items</option>
+                            <option value="qa">Wrap: Bahan Tanya Jawab</option>
+                            <option value="audit">Wrap: Audit Kritis Dokumen</option>
+                        </select>
+
+                        <button id="copyBtn" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                            <span>Salin ke Clipboard</span>
+                        </button>
+
+                        <button id="exportCurrentToDocxBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Ubah hasil markdown aktif ini langsung menjadi file Word .docx">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Ekspor ke .DOCX</span>
+                        </button>
+
+                        <button id="mergeBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Unduh Bundle (.md)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chunk Tabs (Jika ada split) -->
+                <div id="chunkTabs" class="hidden flex items-center gap-2 text-xs bg-slate-900/40 px-3 py-2 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 text-xs font-semibold flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                        Part Dokumen:
+                    </span>
+                    <div id="chunkBtnList" class="flex gap-1.5 flex-wrap"></div>
+                </div>
+
+                <!-- Editor / Output -->
+                <div class="flex-1 flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="px-4 py-2.5 bg-slate-950/90 border-b border-slate-800/80 flex justify-between items-center text-xs text-slate-400">
+                        <div class="flex items-center gap-2">
+                            <span id="activeFileInfo" class="font-mono text-slate-200 font-medium">Ready</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="savingStat" class="text-slate-400 font-mono">0 karakter</span>
+                            <span id="tokenBadge" class="font-mono bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-800/60 font-semibold text-[11px]">0 tokens</span>
+                        </div>
+                    </div>
+                    <textarea id="outputArea" class="w-full flex-1 bg-transparent p-4 text-xs font-mono text-slate-300 resize-none focus:outline-none select-text leading-relaxed min-h-[420px]" spellcheck="false"></textarea>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- =================================================================== -->
+        <!-- VIEW 2: MARKDOWN TO DOCX -->
+        <!-- =================================================================== -->
+        <section id="viewMd2Doc" class="hidden flex-col gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- Input Sidebar & Settings -->
+                <div class="flex flex-col gap-4">
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col gap-4">
+                        <div class="flex items-center gap-2 text-white font-bold text-sm">
+                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Konfigurasi Ekspor Word</span>
+                        </div>
+
+                        <!-- Target Filename -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nama File Output (.docx):</label>
+                            <input type="text" id="targetDocxName" value="Dokumen_Hasil_Konversi" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono transition" />
+                        </div>
+
+                        <!-- Upload .MD File Optional -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Atau Upload File .MD:</label>
+                            <div id="mdDropzone" class="border border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-xl p-4 text-center cursor-pointer transition">
+                                <input type="file" id="mdFileInput" class="hidden" accept=".md,.markdown,.txt" />
+                                <svg class="w-5 h-5 text-indigo-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <p class="text-xs text-slate-300 font-medium">Pilih file .md / .txt</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5" id="mdFileSelectedName">Belum ada file dipilih</p>
+                            </div>
+                        </div>
+
+                        <!-- Preset Markdown Samples -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Muat Contoh Markdown:</label>
+                            <div class="flex gap-2">
+                                <button id="loadSampleReportBtn" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">Laporan & Tabel</button>
+                                <button id="loadSampleProposalBtn" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">Proposal Singkat</button>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button id="generateDocxBtn" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                <span id="generateDocxBtnText">Konversi & Unduh .DOCX</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-indigo-950/30 border border-indigo-900/40 rounded-2xl p-4 text-xs text-slate-400 space-y-1.5">
+                        <p class="font-semibold text-indigo-300 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Fitur Styling Otomatis:
+                        </p>
+                        <ul class="list-disc list-inside text-[11px] space-y-1 text-slate-400">
+                            <li>Heading 1 hingga 6 berjenjang rapi</li>
+                            <li>Tabel lengkap dengan header shading abu-abu</li>
+                            <li>Format list bernomor & bullet points</li>
+                            <li>Code block ber-frame dengan font monospace</li>
+                            <li>Kutipan / blockquote bergaris inden</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[500px]">
+                    <div class="px-4 py-3 bg-slate-950/90 border-b border-slate-800 flex justify-between items-center text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-slate-200">Editor Teks Markdown</span>
+                            <span class="text-[10px] text-slate-500">• Tempel teks markdown Anda di sini</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-slate-400 font-mono text-[11px]">
+                            <span id="mdCharCount">0 karakter</span>
+                            <span class="w-1 h-3 bg-slate-800 rounded"></span>
+                            <span id="mdLineCount">0 baris</span>
+                        </div>
+                    </div>
+                    <textarea id="mdInputArea" class="w-full flex-1 bg-transparent p-5 text-xs font-mono text-slate-300 resize-none focus:outline-none select-text leading-relaxed min-h-[460px]" placeholder="# Masukkan Judul Dokumen Anda&#10;&#10;Ketik atau tempel teks Markdown di sini..." spellcheck="false"></textarea>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const tabModeDoc2Md = document.getElementById('tabModeDoc2Md');
+        const tabModeMd2Doc = document.getElementById('tabModeMd2Doc');
+        const viewDoc2Md = document.getElementById('viewDoc2Md');
+        const viewMd2Doc = document.getElementById('viewMd2Doc');
+        const globalResetBtn = document.getElementById('globalResetBtn');
+
+        const dropzone = document.getElementById('dropzone');
+        const dropzoneNormal = document.getElementById('dropzoneNormal');
+        const dropzoneLoading = document.getElementById('dropzoneLoading');
+        const fileInput = document.getElementById('fileInput');
+        const chunkSelect = document.getElementById('chunkSelect');
+        const quickStatusBadge = document.getElementById('quickStatusBadge');
+        const uploadStatusText = document.getElementById('uploadStatusText');
+        
+        const fileDetailsSection = document.getElementById('fileDetailsSection');
+        const fileDetailsCount = document.getElementById('fileDetailsCount');
+        const fileCardsGrid = document.getElementById('fileCardsGrid');
+
+        const workspace = document.getElementById('workspace');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const chunkTabs = document.getElementById('chunkTabs');
+        const chunkBtnList = document.getElementById('chunkBtnList');
+        const outputArea = document.getElementById('outputArea');
+        const activeFileInfo = document.getElementById('activeFileInfo');
+        const savingStat = document.getElementById('savingStat');
+        const tokenBadge = document.getElementById('tokenBadge');
+        const statsSummary = document.getElementById('statsSummary');
+        const statFiles = document.getElementById('statFiles');
+        const statTokens = document.getElementById('statTokens');
+        const promptPreset = document.getElementById('promptPreset');
+        const copyBtn = document.getElementById('copyBtn');
+        const mergeBtn = document.getElementById('mergeBtn');
+        const exportCurrentToDocxBtn = document.getElementById('exportCurrentToDocxBtn');
+
+        const targetDocxName = document.getElementById('targetDocxName');
+        const mdDropzone = document.getElementById('mdDropzone');
+        const mdFileInput = document.getElementById('mdFileInput');
+        const mdFileSelectedName = document.getElementById('mdFileSelectedName');
+        const mdInputArea = document.getElementById('mdInputArea');
+        const mdCharCount = document.getElementById('mdCharCount');
+        const mdLineCount = document.getElementById('mdLineCount');
+        const generateDocxBtn = document.getElementById('generateDocxBtn');
+        const generateDocxBtnText = document.getElementById('generateDocxBtnText');
+        const loadSampleReportBtn = document.getElementById('loadSampleReportBtn');
+        const loadSampleProposalBtn = document.getElementById('loadSampleProposalBtn');
+
+        let converted = [];
+        let activeIdx = 0;
+        let activeChunkIdx = 0;
+
+        tabModeDoc2Md.addEventListener('click', () => switchMode('doc2md'));
+        tabModeMd2Doc.addEventListener('click', () => switchMode('md2doc'));
+
+        function switchMode(mode) {
+            if (mode === 'doc2md') {
+                viewDoc2Md.classList.remove('hidden');
+                viewMd2Doc.classList.add('hidden');
+                tabModeDoc2Md.className = "px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
+                tabModeMd2Doc.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+            } else {
+                viewDoc2Md.classList.add('hidden');
+                viewMd2Doc.classList.remove('hidden');
+                tabModeMd2Doc.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
+                tabModeDoc2Md.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+            }
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-sky-500', 'bg-sky-950/20');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-sky-500', 'bg-sky-950/20');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-sky-500', 'bg-sky-950/20');
+            if (e.dataTransfer.files.length) upload(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) upload(e.target.files);
+        });
+
+        async function upload(files) {
+            const fd = new FormData();
+            for (let f of files) fd.append('files', f);
+            fd.append('chunk_tokens', chunkSelect.value);
+
+            dropzoneNormal.classList.add('hidden');
+            dropzoneLoading.classList.remove('hidden');
+            dropzone.classList.add('pointer-events-none', 'border-sky-500/60');
+            quickStatusBadge.textContent = 'Memproses...';
+            quickStatusBadge.className = 'text-sky-400 font-medium animate-pulse';
+            uploadStatusText.textContent = `Mengonversi ${files.length} dokumen...`;
+
+            try {
+                const res = await fetch('/convert', { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                const newSuccess = (data.results || []).filter(r => r.status === 'success');
+                const errors = (data.results || []).filter(r => r.status === 'error');
+
+                if (errors.length > 0 && newSuccess.length === 0) {
+                    alert(`Gagal memproses file:\n${errors.map(e => e.filename + ': ' + e.error).join('\n')}`);
+                    return;
+                }
+
+                if (!newSuccess.length) {
+                    alert('Gagal memproses file. Pastikan format didukung.');
+                    return;
+                }
+
+                // Append or replace
+                converted = [...converted, ...newSuccess];
+                activeIdx = converted.length - newSuccess.length;
+                activeChunkIdx = 0;
+
+                renderAll();
+            } catch (err) {
+                alert('Terjadi kesalahan saat mengunggah: ' + err.message);
+            } finally {
+                dropzoneNormal.classList.remove('hidden');
+                dropzoneLoading.classList.add('hidden');
+                dropzone.classList.remove('pointer-events-none', 'border-sky-500/60');
+                quickStatusBadge.textContent = 'Siap';
+                quickStatusBadge.className = 'text-emerald-400 font-medium';
+                fileInput.value = '';
+            }
+        }
+
+        function renderAll() {
+            renderFileCards();
+            renderWorkspace();
+        }
+
+        function renderFileCards() {
+            if (!converted.length) {
+                fileDetailsSection.classList.add('hidden');
+                return;
+            }
+            fileDetailsSection.classList.remove('hidden');
+            fileDetailsCount.textContent = converted.length;
+            fileCardsGrid.innerHTML = '';
+
+            converted.forEach((item, idx) => {
+                const ext = (item.filename.split('.').pop() || '').toUpperCase();
+                const card = document.createElement('div');
+                const isActive = (idx === activeIdx);
+                
+                card.className = `p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between gap-2.5 ${
+                    isActive ? 'bg-sky-950/40 border-sky-500/80 shadow-md shadow-sky-500/10' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono">${ext}</span>
+                            <span class="text-xs font-semibold text-slate-200 truncate" title="${item.filename}">${item.filename}</span>
+                        </div>
+                        <button class="remove-btn text-slate-500 hover:text-rose-400 transition p-0.5 rounded" title="Hapus file ini" data-idx="${idx}">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                        <span>${item.raw_size_kb} KB</span>
+                        <span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span>
+                    </div>
+                `;
+
+                card.onclick = (e) => {
+                    if (e.target.closest('.remove-btn')) return;
+                    activeIdx = idx;
+                    activeChunkIdx = 0;
+                    renderAll();
+                };
+
+                const rmBtn = card.querySelector('.remove-btn');
+                rmBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeFile(idx);
+                };
+
+                fileCardsGrid.appendChild(card);
+            });
+        }
+
+        function removeFile(index) {
+            converted.splice(index, 1);
+            if (activeIdx >= converted.length) {
+                activeIdx = Math.max(0, converted.length - 1);
+            }
+            activeChunkIdx = 0;
+            if (converted.length === 0) {
+                resetAll();
+            } else {
+                renderAll();
+            }
+        }
+
+        function renderWorkspace() {
+            if (!converted.length) {
+                workspace.classList.add('hidden');
+                statsSummary.classList.add('hidden');
+                return;
+            }
+
+            workspace.classList.remove('hidden');
+            statsSummary.classList.remove('hidden');
+            statFiles.textContent = converted.length;
+
+            let totalTokens = converted.reduce((acc, cur) => acc + cur.token_count, 0);
+            statTokens.textContent = totalTokens.toLocaleString();
+
+            tabsContainer.innerHTML = '';
+            converted.forEach((item, idx) => {
+                const tab = document.createElement('button');
+                const isSelected = (idx === activeIdx);
+                tab.className = `px-3 py-1.5 rounded-lg text-xs font-medium truncate max-w-[160px] border transition ${
+                    isSelected ? 'bg-sky-600 text-white border-sky-500 shadow-sm' : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                }`;
+                tab.textContent = item.filename;
+                tab.onclick = () => {
+                    activeIdx = idx;
+                    activeChunkIdx = 0;
+                    renderAll();
+                };
+                tabsContainer.appendChild(tab);
+            });
+
+            updateActiveView();
+        }
+
+        function updateActiveView() {
+            if (!converted.length) return;
+            const curr = converted[activeIdx];
+            
+            if (curr.chunks && curr.chunks.length > 1) {
+                chunkTabs.classList.remove('hidden');
+                chunkBtnList.innerHTML = '';
+                curr.chunks.forEach((_, cIdx) => {
+                    const cBtn = document.createElement('button');
+                    cBtn.className = `px-2.5 py-1 rounded-md text-[11px] font-mono border transition ${
+                        cIdx === activeChunkIdx ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
+                    }`;
+                    cBtn.textContent = `Part ${cIdx + 1}`;
+                    cBtn.onclick = () => {
+                        activeChunkIdx = cIdx;
+                        updateActiveView();
+                    };
+                    chunkBtnList.appendChild(cBtn);
+                });
+            } else {
+                chunkTabs.classList.add('hidden');
+            }
+
+            const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
+            outputArea.value = applyPromptPreset(rawText, curr.filename);
+            
+            activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw`;
+            savingStat.textContent = `${curr.char_count.toLocaleString()} karakter`;
+            tokenBadge.textContent = `${curr.token_count.toLocaleString()} tokens`;
+        }
+
+        function applyPromptPreset(content, filename) {
+            const mode = promptPreset.value;
+            if (mode === 'summarize') {
+                return `Berikut adalah dokumen "${filename}":\n\n\`\`\`markdown\n${content}\n\`\`\`\n\nTolong buat ringkasan komprehensif, poin-poin keputusan terpenting, dan action items dari dokumen di atas.`;
+            } else if (mode === 'qa') {
+                return `Gunakan dokumen "${filename}" berikut sebagai referensi utama menjawab pertanyaan:\n\n\`\`\`markdown\n${content}\n\`\`\`\n\nJawab pertanyaan berikut hanya berdasarkan data dokumen di atas: [Ketik pertanyaanmu di sini]`;
+            } else if (mode === 'audit') {
+                return `Audit dan telaah secara kritis dokumen "${filename}" berikut:\n\n\`\`\`markdown\n${content}\n\`\`\`\n\nIdentifikasi potensi celah, inkonsistensi data, atau risiko yang ada di dalamnya.`;
+            }
+            return content;
+        }
+
+        promptPreset.addEventListener('change', () => {
+            if (!converted.length) return;
+            const curr = converted[activeIdx];
+            const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
+            outputArea.value = applyPromptPreset(rawText, curr.filename);
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            if (!outputArea.value) return;
+            await navigator.clipboard.writeText(outputArea.value);
+            const orig = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                <svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Tersalin!</span>
+            `;
+            setTimeout(() => copyBtn.innerHTML = orig, 1500);
+        });
+
+        mergeBtn.addEventListener('click', () => {
+            if (!converted.length) return;
+            const bundled = converted.map(f => `# FILE: ${f.filename}\n\n${f.markdown}\n\n---\n`).join('\n');
+            const blob = new Blob([bundled], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bundle_ai_context_${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        exportCurrentToDocxBtn.addEventListener('click', async () => {
+            if (!outputArea.value) return;
+            const curr = converted[activeIdx];
+            const baseName = curr ? curr.filename.replace(/\.[^/.]+$/, "") : "Dokumen";
+            
+            exportCurrentToDocxBtn.disabled = true;
+            const orig = exportCurrentToDocxBtn.innerHTML;
+            exportCurrentToDocxBtn.innerHTML = `<span>Menyiapkan .docx...</span>`;
+
+            try {
+                const fd = new FormData();
+                fd.append('markdown_text', outputArea.value);
+                fd.append('filename', baseName);
+
+                const res = await fetch('/md-to-docx', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error(await res.text());
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${baseName}.docx`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Gagal mengekspor DOCX: ' + err.message);
+            } finally {
+                exportCurrentToDocxBtn.disabled = false;
+                exportCurrentToDocxBtn.innerHTML = orig;
+            }
+        });
+
+        globalResetBtn.addEventListener('click', () => {
+            if (confirm('Reset semua file dan kembalikan antarmuka ke kondisi awal?')) {
+                resetAll();
+            }
+        });
+
+        function resetAll() {
+            converted = [];
+            activeIdx = 0;
+            activeChunkIdx = 0;
+            fileInput.value = '';
+            outputArea.value = '';
+            workspace.classList.add('hidden');
+            fileDetailsSection.classList.add('hidden');
+            statsSummary.classList.add('hidden');
+            chunkTabs.classList.add('hidden');
+            fileCardsGrid.innerHTML = '';
+            tabsContainer.innerHTML = '';
+            statFiles.textContent = '0';
+            statTokens.textContent = '0';
+
+            // Also reset MD2Doc inputs
+            mdInputArea.value = '';
+            mdFileInput.value = '';
+            mdFileSelectedName.textContent = 'Belum ada file dipilih';
+            targetDocxName.value = 'Dokumen_Hasil_Konversi';
+            updateMdStats();
+        }
+
+        mdDropzone.addEventListener('click', () => mdFileInput.click());
+        mdDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            mdDropzone.classList.add('border-indigo-500');
+        });
+        mdDropzone.addEventListener('dragleave', () => {
+            mdDropzone.classList.remove('border-indigo-500');
+        });
+        mdDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            mdDropzone.classList.remove('border-indigo-500');
+            if (e.dataTransfer.files.length) handleMdFile(e.dataTransfer.files[0]);
+        });
+        mdFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleMdFile(e.target.files[0]);
+        });
+
+        function handleMdFile(file) {
+            mdFileSelectedName.textContent = `${file.name} (${Math.round(file.size / 1024 * 10) / 10} KB)`;
+            targetDocxName.value = file.name.replace(/\.[^/.]+$/, "");
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                mdInputArea.value = e.target.result;
+                updateMdStats();
+            };
+            reader.readAsText(file);
+        }
+
+        mdInputArea.addEventListener('input', updateMdStats);
+        function updateMdStats() {
+            const text = mdInputArea.value;
+            mdCharCount.textContent = `${text.length.toLocaleString()} karakter`;
+            mdLineCount.textContent = `${text ? text.split('\n').length : 0} baris`;
+        }
+
+        generateDocxBtn.addEventListener('click', async () => {
+            const text = mdInputArea.value;
+            if (!text.trim()) {
+                alert('Silakan masukkan atau upload teks Markdown terlebih dahulu.');
+                return;
+            }
+
+            generateDocxBtn.disabled = true;
+            generateDocxBtnText.textContent = 'Membuat Dokumen Word...';
+
+            try {
+                const fd = new FormData();
+                fd.append('markdown_text', text);
+                fd.append('filename', targetDocxName.value || 'dokumen');
+
+                const res = await fetch('/md-to-docx', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error(await res.text());
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const safeName = (targetDocxName.value.trim() || 'dokumen').replace(/\.docx$/i, '') + '.docx';
+                a.download = safeName;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Gagal membuat DOCX: ' + err.message);
+            } finally {
+                generateDocxBtn.disabled = false;
+                generateDocxBtnText.textContent = 'Konversi & Unduh .DOCX';
+            }
+        });
+
+        // Sample Presets
+        loadSampleReportBtn.addEventListener('click', () => {
+            targetDocxName.value = 'Laporan_Analisis_Sistem';
+            mdInputArea.value = `# Laporan Evaluasi Kinerja Sistem
+
+Berikut adalah ringkasan evaluasi operasional dan matriks pencapaian kuartal ini.
+
+## Ringkasan Eksekutif
+Sistem pemrosesan dokumen menunjukkan peningkatan efisiensi sebesar **34%** setelah optimasi pipeline.
+
+> "Preservasi konteks teks dan pemetaan gambar dokumen menjadi kunci utama akurasi pemrosesan AI."
+
+---
+
+## Matriks Evaluasi
+| Komponen | Status Sebelum | Status Sesudah | Peningkatan |
+|---|---|---|---|
+| Ekstraksi PDF | 3.2 detik | 0.8 detik | +75% |
+| Pemetaan Gambar | Tidak ada | Terdeteksi Otomatis | 100% |
+| Ekspor DOCX | Manual | 1-Klik Rapi | Sangat Cepat |
+
+## Rekomendasi Tindak Lanjut
+1. Pertahankan konfigurasi offline agar privasi data terjaga 100%.
+2. Gunakan auto-chunking jika ukuran dokumen melebihi 16,000 token.
+3. Lakukan verifikasi visual pada dokumen yang memiliki banyak diagram kompleks.
+
+\`\`\`python
+# Cuplikan automasi konversi dokumen
+import md2docx
+
+docx_bytes = md2docx.markdown_to_docx_bytes(markdown_content)
+with open("output.docx", "wb") as f:
+    f.write(docx_bytes)
+\`\`\`
+`;
+            updateMdStats();
+        });
+
+        loadSampleProposalBtn.addEventListener('click', () => {
+            targetDocxName.value = 'Proposal_Pengembangan_Fitur';
+            mdInputArea.value = `# Proposal Pengembangan Modul AI Studio
+
+## 1. Latar Belakang
+Pengguna membutuhkan solusi lokal untuk mengonversi dokumen PDF/Word/Excel ke Markdown dan sebaliknya dengan cepat tanpa ketergantungan API pihak ketiga.
+
+## 2. Ruang Lingkup Proyek
+- **Konversi Multi-Format**: PDF, Word, Excel, PowerPoint, Gambar
+- **Preservasi Konteks**: Deteksi otomatis gambar/diagram dalam PDF
+- **Fitur Ekspor Sebaliknya**: Markdown ke file Microsoft Word (.docx) berformat rapi
+
+## 3. Garis Waktu Pelaksanaan
+- **Fase 1**: Penataan antarmuka & tombol reset
+- **Fase 2**: Integrasi engine konversi dokumen & styling Word
+- **Fase 3**: Build PyInstaller standalone eksekutabel
+`;
+            updateMdStats();
+        });
+    </script>
+</body>
+</html>
