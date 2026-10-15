@@ -48,6 +48,7 @@ from core.docx_generator import markdown_to_docx_bytes
 from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
 from core.batch_exporter import create_batch_zip
 from core.themes import list_themes
+from core.ocr_engine import is_ocr_available
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -91,6 +92,8 @@ async def convert_endpoint(
             if chunk_tokens > 0 and tokens > chunk_tokens:
                 chunks = chunk_by_tokens(markdown_content, chunk_tokens)
 
+            is_ocr = ("[Hasil Ekstraksi OCR:" in markdown_content) or ("[Dokumen PDF Scan Terdeteksi" in markdown_content)
+
             results.append({
                 "filename": file.filename,
                 "status": "success",
@@ -100,7 +103,8 @@ async def convert_endpoint(
                 "raw_size_kb": round(raw_size / 1024, 1),
                 "chunks": chunks,
                 "images_count": len(extracted_images),
-                "images": [img.to_dict() for img in extracted_images]
+                "images": [img.to_dict() for img in extracted_images],
+                "is_ocr": is_ocr
             })
         except Exception as exc:
             logger.error(f"Gagal mengonversi file {file.filename}: {exc}", exc_info=True)
@@ -117,6 +121,11 @@ async def convert_endpoint(
                     pass
 
     return {"results": results}
+
+@app.get("/ocr-status")
+async def get_ocr_status_endpoint():
+    """Returns whether the offline OCR engine is active and ready."""
+    return {"available": is_ocr_available(), "engine": "RapidOCR (ONNX Local)"}
 
 @app.get("/themes")
 async def get_themes_endpoint():

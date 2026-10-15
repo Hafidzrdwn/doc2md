@@ -130,7 +130,7 @@
                             </svg>
                         </div>
                         <p class="text-sm font-semibold text-slate-200">Klik atau seret dokumen ke sini <span class="text-sky-400 font-normal">(bisa banyak file sekaligus)</span></p>
-                        <p class="text-xs text-slate-400">Mendukung <span class="text-slate-300 font-medium">PDF, Word (.docx), Excel (.xlsx, .csv), PPTX, Teks, Gambar (.png, .jpg)</span></p>
+                        <p class="text-xs text-slate-400">Mendukung <span class="text-slate-300 font-medium">PDF (Teks & Scan), Word (.docx), Excel, PPTX, Teks, Gambar (.png, .jpg dengan Offline OCR)</span></p>
                     </div>
 
                     <!-- Uploading Active State Inside Dropzone -->
@@ -631,6 +631,7 @@
                     <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
                         <span>${item.raw_size_kb} KB</span>
                         <div class="flex items-center gap-1.5">
+                            ${item.is_ocr ? `<span class="bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 font-sans font-medium" title="Teks diekstrak menggunakan Offline OCR">🔍 OCR</span>` : ''}
                             ${(item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 font-sans" title="${item.images_count} gambar diekstrak">🖼️ ${item.images_count}</span>` : ''}
                             <span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span>
                         </div>

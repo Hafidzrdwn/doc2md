@@ -93,32 +93,41 @@ from core.image_extractor import (
     append_image_markdown_gallery,
     ExtractedImage,
 )
+from core.ocr_engine import (
+    ocr_image_file_to_markdown,
+    ocr_scanned_pdf,
+    extract_text_from_image,
+)
 
 def convert_file_to_markdown_with_assets(file_path: str, original_filename: str) -> tuple[str, list[ExtractedImage]]:
     """
-    Converts a supported file into clean, AI-optimized Markdown
-    and extracts real image/diagram assets from PDF and Office documents.
+    Converts a supported file into clean, AI-optimized Markdown,
+    applies OCR on images/scanned PDFs, and extracts real visual assets.
     Returns (markdown_text, list_of_extracted_images).
     """
     ext = os.path.splitext(original_filename)[1].lower()
     raw_size = os.path.getsize(file_path)
 
-    converter = get_markitdown()
-    converted = converter.convert(file_path)
-    cleaned = clean_markdown_for_ai(converted.text_content)
-
     images = extract_document_images(file_path, original_filename)
 
-    if ext == ".pdf":
+    if ext in IMAGE_EXTENSIONS:
+        # Perform Offline OCR extraction for standalone images
+        cleaned = ocr_image_file_to_markdown(file_path, original_filename)
+        cleaned = clean_markdown_for_ai(cleaned)
+    elif ext == ".pdf":
+        # Check if PDF is a scan without text layer
+        scanned_ocr_text = ocr_scanned_pdf(file_path)
+        if scanned_ocr_text:
+            cleaned = clean_markdown_for_ai(scanned_ocr_text)
+        else:
+            converter = get_markitdown()
+            converted = converter.convert(file_path)
+            cleaned = clean_markdown_for_ai(converted.text_content)
         cleaned = annotate_pdf_images(file_path, cleaned)
-    elif ext in IMAGE_EXTENSIONS:
-        size_kb = round(raw_size / 1024, 1)
-        meta_body = cleaned if cleaned else "*(Tidak ada metadata teks yang diekstrak)*"
-        cleaned = (
-            f"> 🖼️ **[File Gambar: {original_filename}]** *(Ukuran: {size_kb} KB)*\n"
-            f"> *(Catatan untuk AI: File ini merupakan gambar visual asli. Teks di bawah adalah metadata teknis format)*\n\n"
-            + meta_body
-        )
+    else:
+        converter = get_markitdown()
+        converted = converter.convert(file_path)
+        cleaned = clean_markdown_for_ai(converted.text_content)
 
     if images:
         cleaned = append_image_markdown_gallery(cleaned, images, original_filename)

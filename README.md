@@ -61,7 +61,13 @@
 - **Konsistensi Visual Lintas-Format**: Token tema (warna heading H1-H4, background tabel, border sel, blockquote, dan bullet list) diterapkan secara seragam baik pada ekspor Microsoft Word (`.docx`) maupun PDF/HTML cetak (`.pdf` / `.html`).
 - **Theme Selector Interaktif**: Pemilih tema visual dengan indikator warna dinamis dan deskripsi instan langsung di toolbar editor studio.
 
-### 10. 💻 Desktop Native & Offline
+### 10. 🔍 Offline OCR (Optical Character Recognition) untuk Gambar & PDF Scan
+- **Engine OCR Mandiri & 100% Offline**: Mengintegrasikan engine RapidOCR berbasis ONNX Runtime yang ringan dan berjalan sepenuhnya di mesin lokal tanpa koneksi internet atau dependensi binary eksternal yang rumit.
+- **Ekstraksi Gambar Visual Nyata**: Mengonversi file gambar (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`) menjadi teks Markdown lengkap dengan indikator skor akurasi deteksi dan metrik kata.
+- **Deteksi Otomatis PDF Scan**: Memindai halaman PDF yang tidak memiliki *text layer* (hasil scan scanner atau foto dokumen fisik), merender bitmap resolusi tinggi via `pypdfium2`, dan mengekstrak teks halaman demi halaman ke Markdown terstruktur.
+- **Indikator Visual di Antarmuka**: Kartu dokumen menampilkan badge `🔍 OCR` ungu pada file gambar maupun scan PDF yang berhasil diproses.
+
+### 11. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -77,6 +83,7 @@ doc-to-markdown/
 │   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
 │   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
+│   ├── ocr_engine.py           # Offline OCR engine (RapidOCR / ONNX)
 │   ├── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
 │   └── themes.py               # Centralized styling presets & theme engine
 ├── templates/                  # Frontend UI templates
@@ -89,6 +96,7 @@ doc-to-markdown/
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
 │   ├── test_image_extractor.py # Unit tests untuk ekstraksi aset gambar nyata
+│   ├── test_ocr.py             # Unit tests untuk offline OCR gambar & PDF scan
 │   ├── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
 │   └── test_themes.py          # Unit tests untuk preset tema Word, PDF & HTML
 ├── app.py                      # Application entrypoint & Desktop GUI runner

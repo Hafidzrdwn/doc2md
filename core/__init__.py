@@ -30,6 +30,13 @@ from .themes import (
     get_theme,
     list_themes,
 )
+from .ocr_engine import (
+    extract_text_from_image,
+    extract_text_from_image_array,
+    ocr_image_file_to_markdown,
+    ocr_scanned_pdf,
+    is_ocr_available,
+)
 
 __all__ = [
     "count_tokens",
@@ -56,4 +63,10 @@ __all__ = [
     "DEFAULT_THEME_ID",
     "get_theme",
     "list_themes",
+    "extract_text_from_image",
+    "extract_text_from_image_array",
+    "ocr_image_file_to_markdown",
+    "ocr_scanned_pdf",
+    "is_ocr_available",
 ]
+
