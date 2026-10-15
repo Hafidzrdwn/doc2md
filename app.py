@@ -49,6 +49,7 @@ from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
 from core.batch_exporter import create_batch_zip
 from core.themes import list_themes
 from core.ocr_engine import is_ocr_available
+from core.frontmatter_formatter import attach_frontmatter
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -63,7 +64,8 @@ async def home(request: Request):
 @app.post("/convert")
 async def convert_endpoint(
     files: List[UploadFile] = File(...),
-    chunk_tokens: int = Form(default=0)
+    chunk_tokens: int = Form(default=0),
+    frontmatter_preset: str = Form(default="none")
 ):
     """Converts uploaded documents into clean, token-counted Markdown."""
     results = []
@@ -86,6 +88,17 @@ async def convert_endpoint(
 
             raw_size = os.path.getsize(temp_path)
             markdown_content, extracted_images = convert_file_to_markdown_with_assets(temp_path, file.filename)
+
+            if frontmatter_preset and frontmatter_preset.strip().lower() != "none":
+                raw_tokens = count_tokens(markdown_content)
+                markdown_content = attach_frontmatter(
+                    markdown_content,
+                    filename=file.filename,
+                    token_count=raw_tokens,
+                    char_count=len(markdown_content),
+                    preset=frontmatter_preset
+                )
+
             tokens = count_tokens(markdown_content)
 
             chunks = []
@@ -131,6 +144,23 @@ async def get_ocr_status_endpoint():
 async def get_themes_endpoint():
     """Returns available document styling presets for Doc2MD."""
     return {"themes": list_themes()}
+
+@app.post("/format-frontmatter")
+async def format_frontmatter_endpoint(
+    markdown_text: str = Form(...),
+    filename: str = Form("dokumen.md"),
+    preset: str = Form("obsidian")
+):
+    """Attaches or updates structured YAML frontmatter for Obsidian/Notion."""
+    tokens = count_tokens(markdown_text)
+    formatted = attach_frontmatter(
+        markdown_text=markdown_text,
+        filename=filename,
+        token_count=tokens,
+        char_count=len(markdown_text),
+        preset=preset
+    )
+    return {"markdown": formatted, "preset": preset}
 
 @app.post("/md-to-docx")
 async def md_to_docx_endpoint(

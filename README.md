@@ -67,7 +67,16 @@
 - **Deteksi Otomatis PDF Scan**: Memindai halaman PDF yang tidak memiliki *text layer* (hasil scan scanner atau foto dokumen fisik), merender bitmap resolusi tinggi via `pypdfium2`, dan mengekstrak teks halaman demi halaman ke Markdown terstruktur.
 - **Indikator Visual di Antarmuka**: Kartu dokumen menampilkan badge `🔍 OCR` ungu pada file gambar maupun scan PDF yang berhasil diproses.
 
-### 11. 💻 Desktop Native & Offline
+### 11. 📑 Obsidian & Notion Frontmatter YAML Formatter
+- **Metadata Siap Impor Catatan Digital**: Mengonfigurasi header metadata YAML di awal dokumen Markdown (`--- ... ---`) agar kompatibel penuh dengan Obsidian Vault, Notion Workspace, Logseq, dan static site generators (Hugo, Astro, Jekyll).
+- **Tiga Preset Standar Industri**:
+  - 🔮 **Obsidian Preset**: Menyertakan `title`, `source`, `created` timestamp, metrik `tokens` dan `characters`, `tags` (termasuk ekstensi dokumen asli), dan `aliases` untuk navigasi graph view.
+  - 🗂️ **Notion Preset**: Format database properties dengan `Title`, `Source File`, `Created Date`, `Tokens`, `Characters`, `Status: Converted`, dan `Tags`.
+  - ⚡ **Minimal Preset**: Format bersih dan ringkas berisi `title`, `source`, dan `date`.
+- **Integrasi Dua Arah & Pembersihan Otomatis**: Dilengkapi fungsi `strip_frontmatter` untuk mencegah duplikasi tag header saat beralih preset atau mengonversi kembali ke DOCX/PDF.
+- **Kontrol Fleksibel**: Dapat dipilih langsung sebelum upload dokumen pada View 1 atau diterapkan secara interaktif pada naskah aktif di toolbar Markdown Studio (View 1 & View 2) lewat tombol `+ YAML`.
+
+### 12. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -82,6 +91,7 @@ doc-to-markdown/
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   ├── frontmatter_formatter.py# Obsidian / Notion YAML frontmatter engine
 │   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
 │   ├── ocr_engine.py           # Offline OCR engine (RapidOCR / ONNX)
 │   ├── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
@@ -95,6 +105,7 @@ doc-to-markdown/
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
+│   ├── test_frontmatter.py     # Unit tests untuk format YAML frontmatter & API
 │   ├── test_image_extractor.py # Unit tests untuk ekstraksi aset gambar nyata
 │   ├── test_ocr.py             # Unit tests untuk offline OCR gambar & PDF scan
 │   ├── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation

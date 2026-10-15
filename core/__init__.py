@@ -37,6 +37,13 @@ from .ocr_engine import (
     ocr_scanned_pdf,
     is_ocr_available,
 )
+from .frontmatter_formatter import (
+    attach_frontmatter,
+    extract_frontmatter,
+    strip_frontmatter,
+    has_frontmatter,
+    SUPPORTED_PRESETS,
+)
 
 __all__ = [
     "count_tokens",
@@ -68,5 +75,11 @@ __all__ = [
     "ocr_image_file_to_markdown",
     "ocr_scanned_pdf",
     "is_ocr_available",
+    "attach_frontmatter",
+    "extract_frontmatter",
+    "strip_frontmatter",
+    "has_frontmatter",
+    "SUPPORTED_PRESETS",
 ]
+
 
