@@ -8,6 +8,17 @@ def test_home_endpoint():
     response = client.get("/")
     assert response.status_code == 200
     assert "Doc2Markdown" in response.text
+    assert "/static/css/style.css" in response.text
+    assert "/static/js/app.js" in response.text
+
+def test_static_files():
+    css_res = client.get("/static/css/style.css")
+    assert css_res.status_code == 200
+    assert "Plus Jakarta Sans" in css_res.text
+
+    js_res = client.get("/static/js/app.js")
+    assert js_res.status_code == 200
+    assert "tabModeDoc2Md" in js_res.text
 
 def test_convert_txt_file():
     file_content = b"Baris pertama teks pengujian.\nBaris kedua pengujian."

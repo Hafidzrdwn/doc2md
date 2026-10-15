@@ -53,10 +53,14 @@ from core.frontmatter_formatter import attach_frontmatter
 from core.folder_watcher import global_folder_watcher
 from core.diff_viewer import compute_document_diff
 
+from starlette.staticfiles import StaticFiles
+
 TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 app = FastAPI(title="Doc2MD Personal Optimizer", docs_url=None, redoc_url=None)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):

@@ -16,6 +16,7 @@ a = Analysis(
     binaries=pdfminer_binaries + pypdfium2_binaries + pdfplumber_binaries + docx_binaries + lxml_binaries + mammoth_binaries + cobble_binaries,
     datas=[
         ('templates', 'templates'),
+        ('static', 'static'),
     ] + pdfminer_datas + pypdfium2_datas + pdfplumber_datas + docx_datas + lxml_datas + mammoth_datas + cobble_datas,
     hiddenimports=[
         # ── tiktoken ─────────────────────────────────────────────────────────
@@ -81,7 +82,34 @@ a = Analysis(
         'core.converter',
         'core.chunker',
         'core.docx_generator',
+        'core.batch_exporter',
+        'core.themes',
+        'core.pdf_generator',
+        'core.ocr_engine',
+        'core.frontmatter_formatter',
+        'core.folder_watcher',
+        'core.diff_viewer',
+        'core.image_extractor',
         'md2docx',
+        # ── Markdown & syntax highlighting ───────────────────────────────────
+        'markdown',
+        'markdown.extensions.tables',
+        'markdown.extensions.fenced_code',
+        'markdown.extensions.codehilite',
+        'markdown.extensions.toc',
+        'markdown.extensions.nl2br',
+        'markdown.extensions.sane_lists',
+        'pymdownx',
+        'pymdownx.superfences',
+        'pymdownx.tasklist',
+        'pygments',
+        'pygments.formatters',
+        'pygments.lexers',
+        # ── Watchdog & YAML ──────────────────────────────────────────────────
+        'watchdog',
+        'watchdog.observers',
+        'watchdog.events',
+        'yaml',
         # ── flaskwebgui + psutil ──────────────────────────────────────────────
         'flaskwebgui',
         'psutil',

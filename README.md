@@ -113,8 +113,13 @@ doc-to-markdown/
 │   ├── ocr_engine.py           # Offline OCR engine (RapidOCR / ONNX)
 │   ├── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
 │   └── themes.py               # Centralized styling presets & theme engine
+├── static/                     # Aset statis terpisah (Modular frontend)
+│   ├── css/
+│   │   └── style.css           # Custom styles & design system tokens
+│   └── js/
+│       └── app.js              # Client application logic & handlers
 ├── templates/                  # Frontend UI templates
-│   └── index.html              # Modern responsive web & desktop interface
+│   └── index.html              # Clean semantic web & desktop interface
 ├── tests/                      # Automated test suite
 │   ├── __init__.py
 │   ├── test_api.py             # FastAPI endpoint integration tests
