@@ -1,19 +1,23 @@
-// ===================================================================
-// Doc2MD - Folder Auto-Watcher Module
-// ===================================================================
+const watcherHeaderDot = el('watcherHeaderDot');
+const watcherGlobalPill = el('watcherGlobalPill');
+const watcherGlobalDot = el('watcherGlobalDot');
+const watcherGlobalText = el('watcherGlobalText');
+const watcherStatusPill = el('watcherStatusPill');
+const btnStartWatcher = el('btnStartWatcher');
+const btnStopWatcher = el('btnStopWatcher');
+const watcherInputPath = el('watcherInputPath');
+const watcherOutputPath = el('watcherOutputPath');
+const btnResetInputPath = el('btnResetInputPath');
+const btnResetOutputPath = el('btnResetOutputPath');
+const watcherFrontmatterSelect = el('watcherFrontmatterSelect');
+const watcherChunkSelect = el('watcherChunkSelect');
+const watcherTotalProcessedBadge = el('watcherTotalProcessedBadge');
+const watcherHistoryCount = el('watcherHistoryCount');
+const btnRefreshWatcherHistory = el('btnRefreshWatcherHistory');
+const btnClearWatcherHistory = el('btnClearWatcherHistory');
+const watcherEmptyState = el('watcherEmptyState');
+const watcherFeedList = el('watcherFeedList');
 
-const watcherHeaderDot = document.getElementById('watcherHeaderDot');
-const watcherGlobalPill = document.getElementById('watcherGlobalPill');
-const watcherGlobalDot = document.getElementById('watcherGlobalDot');
-const watcherGlobalText = document.getElementById('watcherGlobalText');
-const watcherStatusPill = document.getElementById('watcherStatusPill');
-const btnStartWatcher = document.getElementById('btnStartWatcher');
-const btnStopWatcher = document.getElementById('btnStopWatcher');
-const watcherInputPath = document.getElementById('watcherInputPath');
-const watcherOutputPath = document.getElementById('watcherOutputPath');
-
-// FOLDER AUTO-WATCHER LOGIC
-// ===================================================================
 async function fetchWatcherStatus() {
     try {
         const res = await fetch('/watcher/status');
@@ -26,42 +30,55 @@ async function fetchWatcherStatus() {
 }
 
 function updateWatcherUI(data) {
+    if (!data) return;
     const isActive = data.is_active;
 
-    if (isActive) {
-        watcherStatusPill.textContent = 'AKTIF (MEMANTAU)';
-        watcherStatusPill.className = 'text-[10px] font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-700/80 px-2 py-0.5 rounded-full font-mono flex items-center gap-1';
-        watcherHeaderDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-        watcherGlobalDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-        watcherGlobalText.textContent = 'Watcher: LIVE';
-        watcherGlobalText.className = 'text-emerald-400 font-mono text-[11px] font-semibold';
-        btnStartWatcher.disabled = true;
-        btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed';
-        btnStopWatcher.disabled = false;
-        btnStopWatcher.className = 'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-rose-600/20';
-    } else {
-        watcherStatusPill.textContent = 'NONAKTIF';
-        watcherStatusPill.className = 'text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono';
-        watcherHeaderDot.className = 'w-2 h-2 rounded-full bg-slate-600';
-        watcherGlobalDot.className = 'w-2 h-2 rounded-full bg-slate-600';
-        watcherGlobalText.textContent = 'Watcher: OFF';
-        watcherGlobalText.className = 'text-slate-400 font-mono text-[11px]';
-        btnStartWatcher.disabled = false;
-        btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20';
-        btnStopWatcher.disabled = true;
-        btnStopWatcher.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed';
+    if (watcherStatusPill) {
+        if (isActive) {
+            watcherStatusPill.textContent = 'AKTIF (MEMANTAU)';
+            watcherStatusPill.className = 'text-[10px] font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-700/80 px-2 py-0.5 rounded-full font-mono flex items-center gap-1';
+        } else {
+            watcherStatusPill.textContent = 'NONAKTIF';
+            watcherStatusPill.className = 'text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono';
+        }
     }
 
-    if (data.input_dir && !isActive) watcherInputPath.value = data.input_dir;
-    if (data.output_dir && !isActive) watcherOutputPath.value = data.output_dir;
+    if (watcherHeaderDot) {
+        watcherHeaderDot.className = isActive ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-slate-600';
+    }
+    if (watcherGlobalDot) {
+        watcherGlobalDot.className = isActive ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-slate-600';
+    }
+    if (watcherGlobalText) {
+        watcherGlobalText.textContent = isActive ? 'Watcher: LIVE' : 'Watcher: OFF';
+        watcherGlobalText.className = isActive ? 'text-emerald-400 font-mono text-[11px] font-semibold' : 'text-slate-400 font-mono text-[11px]';
+    }
 
-    watcherTotalProcessedBadge.textContent = (data.total_processed || 0).toLocaleString();
-    watcherHistoryCount.textContent = (data.recent_events || []).length;
+    if (btnStartWatcher) {
+        btnStartWatcher.disabled = isActive;
+        btnStartWatcher.className = isActive 
+            ? 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed'
+            : 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20';
+    }
+
+    if (btnStopWatcher) {
+        btnStopWatcher.disabled = !isActive;
+        btnStopWatcher.className = !isActive
+            ? 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed'
+            : 'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-rose-600/20';
+    }
+
+    if (data.input_dir && !isActive && watcherInputPath) watcherInputPath.value = data.input_dir;
+    if (data.output_dir && !isActive && watcherOutputPath) watcherOutputPath.value = data.output_dir;
+
+    if (watcherTotalProcessedBadge) watcherTotalProcessedBadge.textContent = (data.total_processed || 0).toLocaleString();
+    if (watcherHistoryCount) watcherHistoryCount.textContent = (data.recent_events || []).length;
 
     renderWatcherEvents(data.recent_events || []);
 }
 
 function renderWatcherEvents(events) {
+    if (!watcherEmptyState || !watcherFeedList) return;
     if (!events || events.length === 0) {
         watcherEmptyState.classList.remove('hidden');
         watcherFeedList.classList.add('hidden');
@@ -107,56 +124,66 @@ function renderWatcherEvents(events) {
     });
 }
 
-btnStartWatcher.addEventListener('click', async () => {
-    const inPath = watcherInputPath.value.trim() || 'watch_input';
-    const outPath = watcherOutputPath.value.trim() || 'watch_output';
-    const fmPreset = watcherFrontmatterSelect.value;
-    const chunkTokens = watcherChunkSelect.value;
+if (btnStartWatcher) {
+    btnStartWatcher.addEventListener('click', async () => {
+        const inPath = (watcherInputPath && watcherInputPath.value.trim()) || 'watch_input';
+        const outPath = (watcherOutputPath && watcherOutputPath.value.trim()) || 'watch_output';
+        const fmPreset = (watcherFrontmatterSelect && watcherFrontmatterSelect.value) || 'none';
+        const chunkTokens = (watcherChunkSelect && watcherChunkSelect.value) || '0';
 
-    btnStartWatcher.disabled = true;
-    btnStartWatcher.innerHTML = `<span>Memulai...</span>`;
+        btnStartWatcher.disabled = true;
+        btnStartWatcher.innerHTML = `<span>Memulai...</span>`;
 
-    try {
-        const fd = new FormData();
-        fd.append('input_dir', inPath);
-        fd.append('output_dir', outPath);
-        fd.append('frontmatter_preset', fmPreset);
-        fd.append('chunk_tokens', chunkTokens);
+        try {
+            const fd = new FormData();
+            fd.append('input_dir', inPath);
+            fd.append('output_dir', outPath);
+            fd.append('frontmatter_preset', fmPreset);
+            fd.append('chunk_tokens', chunkTokens);
 
-        const res = await fetch('/watcher/start', { method: 'POST', body: fd });
-        if (!res.ok) throw new Error(await res.text());
-        await res.json();
-        fetchWatcherStatus();
-    } catch (err) {
-        alert('Gagal memulai Folder Watcher: ' + err.message);
-        fetchWatcherStatus();
-    }
-});
+            const res = await fetch('/watcher/start', { method: 'POST', body: fd });
+            if (!res.ok) throw new Error(await res.text());
+            await res.json();
+            fetchWatcherStatus();
+        } catch (err) {
+            alert('Gagal memulai Folder Watcher: ' + err.message);
+            fetchWatcherStatus();
+        }
+    });
+}
 
-btnStopWatcher.addEventListener('click', async () => {
-    btnStopWatcher.disabled = true;
-    btnStopWatcher.innerHTML = `<span>Menghentikan...</span>`;
-    try {
-        const res = await fetch('/watcher/stop', { method: 'POST' });
-        if (!res.ok) throw new Error(await res.text());
-        fetchWatcherStatus();
-    } catch (err) {
-        alert('Gagal menghentikan Folder Watcher: ' + err.message);
-        fetchWatcherStatus();
-    }
-});
+if (btnStopWatcher) {
+    btnStopWatcher.addEventListener('click', async () => {
+        btnStopWatcher.disabled = true;
+        btnStopWatcher.innerHTML = `<span>Menghentikan...</span>`;
+        try {
+            const res = await fetch('/watcher/stop', { method: 'POST' });
+            if (!res.ok) throw new Error(await res.text());
+            fetchWatcherStatus();
+        } catch (err) {
+            alert('Gagal menghentikan Folder Watcher: ' + err.message);
+            fetchWatcherStatus();
+        }
+    });
+}
 
-btnResetInputPath.addEventListener('click', () => { watcherInputPath.value = 'watch_input'; });
-btnResetOutputPath.addEventListener('click', () => { watcherOutputPath.value = 'watch_output'; });
-btnRefreshWatcherHistory.addEventListener('click', fetchWatcherStatus);
-btnClearWatcherHistory.addEventListener('click', async () => {
-    if (confirm('Bersihkan seluruh log riwayat aktivitas watcher?')) {
-        await fetch('/watcher/clear-history', { method: 'POST' });
-        fetchWatcherStatus();
-    }
-});
+if (btnResetInputPath && watcherInputPath) {
+    btnResetInputPath.addEventListener('click', () => { watcherInputPath.value = 'watch_input'; });
+}
+if (btnResetOutputPath && watcherOutputPath) {
+    btnResetOutputPath.addEventListener('click', () => { watcherOutputPath.value = 'watch_output'; });
+}
+if (btnRefreshWatcherHistory) {
+    btnRefreshWatcherHistory.addEventListener('click', fetchWatcherStatus);
+}
+if (btnClearWatcherHistory) {
+    btnClearWatcherHistory.addEventListener('click', async () => {
+        if (confirm('Bersihkan seluruh log riwayat aktivitas watcher?')) {
+            await fetch('/watcher/clear-history', { method: 'POST' });
+            fetchWatcherStatus();
+        }
+    });
+}
 
 setInterval(fetchWatcherStatus, 3000);
 fetchWatcherStatus();
-
-// ===================================================================

@@ -1,4 +1,6 @@
-const el = id => document.getElementById(id);
+let converted = window.converted || [];
+let activeIdx = window.activeIdx || 0;
+let activeChunkIdx = window.activeChunkIdx || 0;
 const globalResetBtn = el('globalResetBtn');
 const dropzone = el('dropzone'), dropzoneNormal = el('dropzoneNormal'), dropzoneLoading = el('dropzoneLoading');
 const fileInput = el('fileInput'), chunkSelect = el('chunkSelect'), frontmatterSelect = el('frontmatterSelect');
@@ -11,6 +13,12 @@ const tokenBadge = el('tokenBadge'), statsSummary = el('statsSummary'), statFile
 const promptPreset = el('promptPreset'), copyBtn = el('copyBtn'), mergeBtn = el('mergeBtn');
 const exportCurrentToDocxBtn = el('exportCurrentToDocxBtn'), exportCurrentToPdfBtn = el('exportCurrentToPdfBtn');
 const exportCurrentToHtmlBtn = el('exportCurrentToHtmlBtn'), exportAllZipBtn = el('exportAllZipBtn'), exportAllZipBtnText = el('exportAllZipBtnText');
+
+function syncGlobalDocState() {
+    window.converted = converted;
+    window.activeIdx = activeIdx;
+    window.activeChunkIdx = activeChunkIdx;
+}
 
 if (dropzone) {
     dropzone.addEventListener('click', () => fileInput && fileInput.click());
@@ -26,24 +34,19 @@ if (dropzone) {
     });
 }
 
-if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) upload(e.target.files);
-    });
-}
+if (fileInput) fileInput.addEventListener('change', (e) => { if (e.target.files.length) upload(e.target.files); });
 
 async function upload(files) {
     const fd = new FormData();
     for (let f of files) fd.append('files', f);
-    fd.append('chunk_tokens', chunkSelect.value);
+    fd.append('chunk_tokens', chunkSelect ? chunkSelect.value : '0');
     fd.append('frontmatter_preset', frontmatterSelect ? frontmatterSelect.value : 'none');
 
-    dropzoneNormal.classList.add('hidden');
-    dropzoneLoading.classList.remove('hidden');
-    dropzone.classList.add('pointer-events-none', 'border-sky-500/60');
-    quickStatusBadge.textContent = 'Memproses...';
-    quickStatusBadge.className = 'text-sky-400 font-medium animate-pulse';
-    uploadStatusText.textContent = `Mengonversi ${files.length} dokumen...`;
+    if (dropzoneNormal) dropzoneNormal.classList.add('hidden');
+    if (dropzoneLoading) dropzoneLoading.classList.remove('hidden');
+    if (dropzone) dropzone.classList.add('pointer-events-none', 'border-sky-500/60');
+    if (quickStatusBadge) { quickStatusBadge.textContent = 'Memproses...'; quickStatusBadge.className = 'text-sky-400 font-medium animate-pulse'; }
+    if (uploadStatusText) uploadStatusText.textContent = `Mengonversi ${files.length} dokumen...`;
 
     try {
         const res = await fetch('/convert', { method: 'POST', body: fd });
@@ -55,24 +58,21 @@ async function upload(files) {
             alert(`Gagal memproses file:\n${errors.map(e => e.filename + ': ' + e.error).join('\n')}`);
             return;
         }
-        if (!newSuccess.length) {
-            alert('Gagal memproses file. Pastikan format didukung.');
-            return;
-        }
+        if (!newSuccess.length) { alert('Gagal memproses file. Pastikan format didukung.'); return; }
 
         converted = [...converted, ...newSuccess];
         activeIdx = converted.length - newSuccess.length;
         activeChunkIdx = 0;
+        syncGlobalDocState();
         renderAll();
     } catch (err) {
         alert('Terjadi kesalahan saat mengunggah: ' + err.message);
     } finally {
-        dropzoneNormal.classList.remove('hidden');
-        dropzoneLoading.classList.add('hidden');
-        dropzone.classList.remove('pointer-events-none', 'border-sky-500/60');
-        quickStatusBadge.textContent = 'Siap';
-        quickStatusBadge.className = 'text-emerald-400 font-medium';
-        fileInput.value = '';
+        if (dropzoneNormal) dropzoneNormal.classList.remove('hidden');
+        if (dropzoneLoading) dropzoneLoading.classList.add('hidden');
+        if (dropzone) dropzone.classList.remove('pointer-events-none', 'border-sky-500/60');
+        if (quickStatusBadge) { quickStatusBadge.textContent = 'Siap'; quickStatusBadge.className = 'text-emerald-400 font-medium'; }
+        if (fileInput) fileInput.value = '';
     }
 }
 
@@ -82,12 +82,10 @@ function renderAll() {
 }
 
 function renderFileCards() {
-    if (!converted.length) {
-        fileDetailsSection.classList.add('hidden');
-        return;
-    }
+    if (!fileDetailsSection || !fileCardsGrid) return;
+    if (!converted.length) { fileDetailsSection.classList.add('hidden'); return; }
     fileDetailsSection.classList.remove('hidden');
-    fileDetailsCount.textContent = converted.length;
+    if (fileDetailsCount) fileDetailsCount.textContent = converted.length;
     fileCardsGrid.innerHTML = '';
 
     converted.forEach((item, idx) => {
@@ -98,35 +96,28 @@ function renderFileCards() {
             isActive ? 'bg-sky-950/40 border-sky-500/80 shadow-md shadow-sky-500/10' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
         }`;
 
-        const ocrTag = item.is_ocr ? `<span class="bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 font-sans font-medium">🔍 OCR</span>` : '';
-        const imgTag = (item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 font-sans">🖼️ ${item.images_count}</span>` : '';
+        const ocrTag = item.is_ocr ? `<span class="bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium">🔍 OCR</span>` : '';
+        const imgTag = (item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans">🖼️ ${item.images_count}</span>` : '';
 
-        card.innerHTML = `
-            <div class="flex items-start justify-between gap-2">
-                <div class="flex items-center gap-2 overflow-hidden">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono">${ext}</span>
-                    <span class="text-xs font-semibold text-slate-200 truncate" title="${item.filename}">${item.filename}</span>
-                </div>
-                <button class="remove-btn text-slate-500 hover:text-rose-400 transition p-0.5 rounded" title="Hapus file ini" data-idx="${idx}">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+        card.innerHTML = `<div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono">${ext}</span>
+                <span class="text-xs font-semibold text-slate-200 truncate" title="${item.filename}">${item.filename}</span>
             </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>${item.raw_size_kb} KB</span>
-                <div class="flex items-center gap-1.5">${ocrTag}${imgTag}<span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span></div>
-            </div>`;
+            <button class="remove-btn text-slate-500 hover:text-rose-400 transition p-0.5 rounded" title="Hapus file ini" data-idx="${idx}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <span>${item.raw_size_kb} KB</span>
+            <div class="flex items-center gap-1.5">${ocrTag}${imgTag}<span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span></div>
+        </div>`;
 
         card.onclick = (e) => {
             if (e.target.closest('.remove-btn')) return;
-            activeIdx = idx;
-            activeChunkIdx = 0;
-            renderAll();
+            activeIdx = idx; activeChunkIdx = 0; syncGlobalDocState(); renderAll();
         };
 
-        card.querySelector('.remove-btn').onclick = (e) => {
-            e.stopPropagation();
-            removeFile(idx);
-        };
+        const rmBtn = card.querySelector('.remove-btn');
+        if (rmBtn) rmBtn.onclick = (e) => { e.stopPropagation(); removeFile(idx); };
         fileCardsGrid.appendChild(card);
     });
 }
@@ -135,46 +126,41 @@ function removeFile(index) {
     converted.splice(index, 1);
     if (activeIdx >= converted.length) activeIdx = Math.max(0, converted.length - 1);
     activeChunkIdx = 0;
-    if (converted.length === 0) resetAll();
-    else renderAll();
+    syncGlobalDocState();
+    if (converted.length === 0) resetAll(); else renderAll();
 }
 
 function renderWorkspace() {
-    if (!converted.length) {
-        workspace.classList.add('hidden');
-        statsSummary.classList.add('hidden');
-        return;
-    }
+    if (!workspace || !statsSummary) return;
+    if (!converted.length) { workspace.classList.add('hidden'); statsSummary.classList.add('hidden'); return; }
 
     workspace.classList.remove('hidden');
     statsSummary.classList.remove('hidden');
-    statFiles.textContent = converted.length;
-    statTokens.textContent = converted.reduce((acc, cur) => acc + cur.token_count, 0).toLocaleString();
+    if (statFiles) statFiles.textContent = converted.length;
+    if (statTokens) statTokens.textContent = converted.reduce((acc, cur) => acc + cur.token_count, 0).toLocaleString();
 
-    tabsContainer.innerHTML = '';
-    converted.forEach((item, idx) => {
-        const tab = document.createElement('button');
-        const isSelected = (idx === activeIdx);
-        tab.className = `px-3 py-1.5 rounded-lg text-xs font-medium truncate max-w-[160px] border transition ${
-            isSelected ? 'bg-sky-600 text-white border-sky-500 shadow-sm' : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
-        }`;
-        tab.textContent = item.filename;
-        tab.onclick = () => {
-            activeIdx = idx;
-            activeChunkIdx = 0;
-            renderAll();
-        };
-        tabsContainer.appendChild(tab);
-    });
-
+    if (tabsContainer) {
+        tabsContainer.innerHTML = '';
+        converted.forEach((item, idx) => {
+            const tab = document.createElement('button');
+            const isSelected = (idx === activeIdx);
+            tab.className = `px-3 py-1.5 rounded-lg text-xs font-medium truncate max-w-[160px] border transition ${
+                isSelected ? 'bg-sky-600 text-white border-sky-500 shadow-sm' : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+            }`;
+            tab.textContent = item.filename;
+            tab.onclick = () => { activeIdx = idx; activeChunkIdx = 0; syncGlobalDocState(); renderAll(); };
+            tabsContainer.appendChild(tab);
+        });
+    }
     updateActiveView();
 }
 
 function updateActiveView() {
     if (!converted.length) return;
     const curr = converted[activeIdx];
+    if (!curr) return;
     
-    if (curr.chunks && curr.chunks.length > 1) {
+    if (curr.chunks && curr.chunks.length > 1 && chunkTabs && chunkBtnList) {
         chunkTabs.classList.remove('hidden');
         chunkBtnList.innerHTML = '';
         curr.chunks.forEach((_, cIdx) => {
@@ -183,22 +169,19 @@ function updateActiveView() {
                 cIdx === activeChunkIdx ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
             }`;
             cBtn.textContent = `Part ${cIdx + 1}`;
-            cBtn.onclick = () => {
-                activeChunkIdx = cIdx;
-                updateActiveView();
-            };
+            cBtn.onclick = () => { activeChunkIdx = cIdx; syncGlobalDocState(); updateActiveView(); };
             chunkBtnList.appendChild(cBtn);
         });
-    } else {
+    } else if (chunkTabs) {
         chunkTabs.classList.add('hidden');
     }
 
     const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
-    outputArea.value = applyPromptPreset(rawText, curr.filename);
+    if (outputArea) outputArea.value = applyPromptPreset(rawText, curr.filename);
     const imgNote = (curr.images_count && curr.images_count > 0) ? ` • 🖼️ ${curr.images_count} gambar diekstrak` : '';
-    activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw${imgNote}`;
-    savingStat.textContent = `${curr.char_count.toLocaleString()} karakter`;
-    tokenBadge.textContent = `${curr.token_count.toLocaleString()} tokens`;
+    if (activeFileInfo) activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw${imgNote}`;
+    if (savingStat) savingStat.textContent = `${curr.char_count.toLocaleString()} karakter`;
+    if (tokenBadge) tokenBadge.textContent = `${curr.token_count.toLocaleString()} tokens`;
 }
 
 function applyPromptPreset(content, filename) {
@@ -213,14 +196,15 @@ if (promptPreset) {
     promptPreset.addEventListener('change', () => {
         if (!converted.length) return;
         const curr = converted[activeIdx];
+        if (!curr) return;
         const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
-        outputArea.value = applyPromptPreset(rawText, curr.filename);
+        if (outputArea) outputArea.value = applyPromptPreset(rawText, curr.filename);
     });
 }
 
 if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
-        if (!outputArea.value) return;
+        if (!outputArea || !outputArea.value) return;
         await navigator.clipboard.writeText(outputArea.value);
         const orig = copyBtn.innerHTML;
         copyBtn.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Tersalin!</span>`;
@@ -240,6 +224,7 @@ if (view1ApplyFrontmatterBtn) {
     view1ApplyFrontmatterBtn.addEventListener('click', async () => {
         if (!converted.length) return;
         const curr = converted[activeIdx];
+        if (!curr) return;
         const preset = view1FrontmatterPreset ? view1FrontmatterPreset.value : 'obsidian';
         const orig = view1ApplyFrontmatterBtn.innerHTML;
         view1ApplyFrontmatterBtn.innerHTML = '<span>...</span>';
@@ -265,7 +250,7 @@ if (view1ApplyFrontmatterBtn) {
 }
 
 async function handleExportCurrent(btn, endpoint, ext, label) {
-    if (!outputArea.value) return;
+    if (!outputArea || !outputArea.value) return;
     const curr = converted[activeIdx];
     const baseName = curr ? curr.filename.replace(/\.[^/.]+$/, "") : "Dokumen";
     btn.disabled = true;
@@ -286,10 +271,14 @@ if (exportCurrentToPdfBtn) exportCurrentToPdfBtn.addEventListener('click', () =>
 
 if (exportCurrentToHtmlBtn) {
     exportCurrentToHtmlBtn.addEventListener('click', () => {
-        if (!outputArea.value) return;
+        if (!outputArea || !outputArea.value) return;
         const curr = converted[activeIdx];
         const baseName = curr ? curr.filename.replace(/\.[^/.]+$/, "") : "Dokumen";
-        previewOrDownloadHtml(outputArea.value, baseName, false);
+        if (typeof previewOrDownloadHtml === 'function') {
+            previewOrDownloadHtml(outputArea.value, baseName, false);
+        } else {
+            exportDocument('/md-to-html', outputArea.value, baseName, 'html');
+        }
     });
 }
 
@@ -300,8 +289,8 @@ if (exportAllZipBtn) {
             return;
         }
         exportAllZipBtn.disabled = true;
-        const orig = exportAllZipBtnText.textContent;
-        exportAllZipBtnText.textContent = 'Mengemas ZIP...';
+        const orig = exportAllZipBtnText ? exportAllZipBtnText.textContent : 'Batch Unduh (.ZIP)';
+        if (exportAllZipBtnText) exportAllZipBtnText.textContent = 'Mengemas ZIP...';
         try {
             const res = await fetch('/download-batch-zip', {
                 method: 'POST',
@@ -316,7 +305,7 @@ if (exportAllZipBtn) {
             alert('Gagal mengunduh berkas ZIP: ' + err.message);
         } finally {
             exportAllZipBtn.disabled = false;
-            exportAllZipBtnText.textContent = orig;
+            if (exportAllZipBtnText) exportAllZipBtnText.textContent = orig;
         }
     });
 }
@@ -332,14 +321,10 @@ if (globalResetBtn) {
 function resetAll() {
     converted = [];
     activeIdx = activeChunkIdx = 0;
-    if (fileInput) fileInput.value = '';
-    if (outputArea) outputArea.value = '';
-    if (workspace) workspace.classList.add('hidden');
-    if (fileDetailsSection) fileDetailsSection.classList.add('hidden');
-    if (statsSummary) statsSummary.classList.add('hidden');
-    if (chunkTabs) chunkTabs.classList.add('hidden');
-    if (fileCardsGrid) fileCardsGrid.innerHTML = '';
-    if (tabsContainer) tabsContainer.innerHTML = '';
+    syncGlobalDocState();
+    ['fileInput', 'outputArea'].forEach(id => { const i = el(id); if (i) i.value = ''; });
+    ['workspace', 'fileDetailsSection', 'statsSummary', 'chunkTabs'].forEach(id => { const c = el(id); if (c) c.classList.add('hidden'); });
+    ['fileCardsGrid', 'tabsContainer'].forEach(id => { const g = el(id); if (g) g.innerHTML = ''; });
     if (statFiles) statFiles.textContent = '0';
     if (statTokens) statTokens.textContent = '0';
 }

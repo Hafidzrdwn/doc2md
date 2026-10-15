@@ -12,9 +12,14 @@ if (window.mermaid) {
     });
 }
 
-window.uploadedFiles = [];
-window.activeFileIndex = 0;
-window.activeChunkIndex = 0;
+window.converted = [];
+window.uploadedFiles = window.converted;
+window.activeIdx = 0;
+window.activeChunkIdx = 0;
+
+function el(id) {
+    return document.getElementById(id);
+}
 
 const exportThemeSelect = document.getElementById('exportThemeSelect');
 const themeColorBadge = document.getElementById('themeColorBadge');
