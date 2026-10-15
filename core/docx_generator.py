@@ -1,12 +1,15 @@
 import io
 import re
 import html
+from typing import Optional
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement, parse_xml
 from docx.oxml.ns import nsdecls, qn
+
+from .themes import get_theme, ThemeConfig
 
 def set_cell_shading(cell, color_hex: str):
     """Apply background fill color to a table cell."""
@@ -131,8 +134,9 @@ def add_inline_runs(paragraph, text: str):
             else:
                 paragraph.add_run(token)
 
-def markdown_to_docx_bytes(markdown_text: str) -> bytes:
-    """Converts Markdown text into formatted Microsoft Word (.docx) binary bytes."""
+def markdown_to_docx_bytes(markdown_text: str, theme: Optional[str] = None) -> bytes:
+    """Converts Markdown text into formatted Microsoft Word (.docx) binary bytes styled with the specified theme."""
+    cfg = get_theme(theme)
     doc = Document()
 
     # Standard 1.0 inch page margins
@@ -145,9 +149,9 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
     # Base typography settings
     normal_style = doc.styles['Normal']
     normal_font = normal_style.font
-    normal_font.name = 'Calibri'
+    normal_font.name = cfg.docx_body_font
     normal_font.size = Pt(11)
-    normal_font.color.rgb = RGBColor(30, 41, 59)  # Slate 800
+    normal_font.color.rgb = RGBColor(*cfg.rgb_text)
 
     lines = markdown_text.splitlines()
     in_code_block = False
@@ -230,7 +234,7 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
                     cell.width = Inches(col_widths[col_idx])
                     set_cell_margins(cell, top=100, bottom=100, left=140, right=140)
                     if is_header:
-                        set_cell_shading(cell, "F1F5F9")  # Slate 100
+                        set_cell_shading(cell, cfg.table_header_bg)
 
                     p = cell.paragraphs[0]
                     p.paragraph_format.space_before = Pt(2)
@@ -240,9 +244,13 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
                     add_inline_runs(p, raw_cell_value)
 
                     if is_header:
+                        r_th = int(cfg.table_header_text[0:2], 16)
+                        g_th = int(cfg.table_header_text[2:4], 16)
+                        b_th = int(cfg.table_header_text[4:6], 16)
                         for run in p.runs:
                             run.bold = True
-                            run.font.color.rgb = RGBColor(15, 23, 42)
+                            run.font.name = cfg.docx_heading_font
+                            run.font.color.rgb = RGBColor(r_th, g_th, b_th)
 
             p_space = doc.add_paragraph()
             p_space.paragraph_format.space_before = Pt(0)
@@ -261,7 +269,7 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
         tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
         tbl.style = 'Table Grid'
         cell = tbl.cell(0, 0)
-        set_cell_shading(cell, "F8FAFC")  # Slate 50 background
+        set_cell_shading(cell, cfg.code_bg)
         set_cell_margins(cell, top=120, bottom=120, left=160, right=160)
 
         if code_lang:
@@ -358,10 +366,13 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
             p.paragraph_format.keep_with_next = True
 
             sizes = {1: Pt(20), 2: Pt(16), 3: Pt(13), 4: Pt(12), 5: Pt(11), 6: Pt(10.5)}
+            heading_rgb = RGBColor(*cfg.rgb_heading)
+            primary_rgb = RGBColor(*cfg.rgb_primary)
+            secondary_rgb = RGBColor(*cfg.rgb_secondary)
             colors = {
-                1: RGBColor(15, 23, 42),
-                2: RGBColor(30, 41, 59),
-                3: RGBColor(51, 65, 85),
+                1: primary_rgb,
+                2: heading_rgb,
+                3: secondary_rgb,
                 4: RGBColor(71, 85, 105),
                 5: RGBColor(100, 116, 139),
                 6: RGBColor(100, 116, 139),
@@ -372,9 +383,9 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
             add_inline_runs(p, heading_text)
             for run in p.runs:
                 run.bold = True
-                run.font.name = 'Calibri'
+                run.font.name = cfg.docx_heading_font
                 run.font.size = sizes.get(level, Pt(12))
-                run.font.color.rgb = colors.get(level, RGBColor(30, 41, 59))
+                run.font.color.rgb = colors.get(level, heading_rgb)
 
             i += 1
             continue
@@ -389,6 +400,7 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
             add_inline_runs(p, quote_text)
             for run in p.runs:
                 run.italic = True
+                run.font.name = cfg.docx_body_font
                 run.font.color.rgb = RGBColor(71, 85, 105)
             i += 1
             continue
@@ -398,7 +410,7 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
             p = doc.add_paragraph()
             p.paragraph_format.space_before = Pt(6)
             p.paragraph_format.space_after = Pt(6)
-            p_border = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="6" w:space="1" w:color="CBD5E1"/></w:pBdr>')
+            p_border = parse_xml(f'<w:pBdr {nsdecls("w")}><w:bottom w:val="single" w:sz="6" w:space="1" w:color="{cfg.table_border_color}"/></w:pBdr>')
             p._p.get_or_add_pPr().append(p_border)
             i += 1
             continue
@@ -422,7 +434,7 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
             r_bullet = p.add_run(f"{symbol}  ")
             r_bullet.font.name = 'Arial'
             r_bullet.font.size = Pt(10)
-            r_bullet.font.color.rgb = RGBColor(71, 85, 105)
+            r_bullet.font.color.rgb = RGBColor(*cfg.rgb_primary)
 
             add_inline_runs(p, item_text)
             i += 1
@@ -444,8 +456,8 @@ def markdown_to_docx_bytes(markdown_text: str) -> bytes:
 
             r_num = p.add_run(f"{num_prefix}  ")
             r_num.bold = True
-            r_num.font.name = 'Calibri'
-            r_num.font.color.rgb = RGBColor(51, 65, 85)
+            r_num.font.name = cfg.docx_heading_font
+            r_num.font.color.rgb = RGBColor(*cfg.rgb_secondary)
 
             add_inline_runs(p, item_text)
             i += 1

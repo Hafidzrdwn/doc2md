@@ -23,6 +23,13 @@ from .pdf_generator import (
     find_chromium_executable,
 )
 from .batch_exporter import create_batch_zip
+from .themes import (
+    THEMES,
+    ThemeConfig,
+    DEFAULT_THEME_ID,
+    get_theme,
+    list_themes,
+)
 
 __all__ = [
     "count_tokens",
@@ -44,4 +51,9 @@ __all__ = [
     "markdown_to_html_document",
     "find_chromium_executable",
     "create_batch_zip",
+    "THEMES",
+    "ThemeConfig",
+    "DEFAULT_THEME_ID",
+    "get_theme",
+    "list_themes",
 ]

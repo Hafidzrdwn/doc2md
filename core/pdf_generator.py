@@ -10,6 +10,8 @@ from typing import Optional
 import markdown
 from pygments.formatters import HtmlFormatter
 
+from .themes import get_theme, ThemeConfig
+
 logger = logging.getLogger(__name__)
 
 def find_chromium_executable() -> Optional[str]:
@@ -64,15 +66,17 @@ def get_pygments_css() -> str:
     formatter = HtmlFormatter(style="default")
     return formatter.get_style_defs('.codehilite')
 
-def get_print_css() -> str:
+def get_print_css(theme: Optional[str] = None) -> str:
     """
     CSS Paged Media styling designed to ensure clean, professional PDF output
     without awkward page cutoffs, orphan headings, or broken tables.
+    Customized according to the selected ThemeConfig.
     """
+    cfg = get_theme(theme)
     pygments_css = get_pygments_css()
     return f"""
     /* ==========================================================================
-       Doc2MD Print-Ready & PDF Paged Media Styles
+       Doc2MD Print-Ready & PDF Paged Media Styles ({cfg.name})
        ========================================================================== */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -81,7 +85,7 @@ def get_print_css() -> str:
         margin: 18mm 16mm 20mm 16mm;
         @bottom-right {{
             content: "Halaman " counter(page) " dari " counter(pages);
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-family: {cfg.body_font};
             font-size: 8.5pt;
             color: #64748b;
         }}
@@ -92,10 +96,10 @@ def get_print_css() -> str:
     }}
 
     body {{
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-family: {cfg.body_font};
         font-size: 10.5pt;
         line-height: 1.65;
-        color: #1e293b;
+        color: {cfg.text_color};
         background-color: #ffffff;
         margin: 0;
         padding: 0;
@@ -112,7 +116,8 @@ def get_print_css() -> str:
 
     /* Headings - Never orphan at the bottom of a page */
     h1, h2, h3, h4, h5, h6 {{
-        color: #0f172a;
+        font-family: {cfg.heading_font};
+        color: {cfg.secondary_color};
         font-weight: 700;
         line-height: 1.3;
         margin-top: 1.6em;
@@ -123,22 +128,22 @@ def get_print_css() -> str:
 
     h1 {{
         font-size: 20pt;
-        border-bottom: 2px solid #0284c7;
+        border-bottom: 2px solid {cfg.primary_color};
         padding-bottom: 6px;
         margin-top: 0;
-        color: #0369a1;
+        color: {cfg.primary_color};
     }}
 
     h2 {{
         font-size: 15pt;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #{cfg.table_border_color};
         padding-bottom: 4px;
-        color: #0f172a;
+        color: {cfg.secondary_color};
     }}
 
     h3 {{
         font-size: 12.5pt;
-        color: #1e293b;
+        color: {cfg.secondary_color};
     }}
 
     h4, h5, h6 {{
@@ -177,34 +182,34 @@ def get_print_css() -> str:
     }}
 
     th {{
-        background-color: #f1f5f9;
-        color: #0f172a;
+        background-color: #{cfg.table_header_bg};
+        color: #{cfg.table_header_text};
         font-weight: 700;
         text-align: left;
         padding: 8px 12px;
-        border: 1px solid #cbd5e1;
+        border: 1px solid #{cfg.table_border_color};
         font-size: 9pt;
         letter-spacing: 0.02em;
     }}
 
     td {{
         padding: 8px 12px;
-        border: 1px solid #e2e8f0;
-        color: #334155;
+        border: 1px solid #{cfg.table_border_color};
+        color: {cfg.text_color};
         vertical-align: top;
     }}
 
     tbody tr:nth-child(even) {{
-        background-color: #f8fafc;
+        background-color: #{cfg.code_bg};
     }}
 
     /* Blockquotes & Callouts */
     blockquote {{
         margin: 1.4em 0;
         padding: 10px 16px;
-        background-color: #f8fafc;
-        border-left: 4px solid #0284c7;
-        color: #334155;
+        background-color: #{cfg.code_bg};
+        border-left: 4px solid {cfg.primary_color};
+        color: {cfg.text_color};
         border-radius: 0 8px 8px 0;
     }}
 
@@ -216,16 +221,16 @@ def get_print_css() -> str:
     code {{
         font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
         font-size: 9pt;
-        background-color: #f1f5f9;
-        color: #0369a1;
+        background-color: #{cfg.code_bg};
+        color: {cfg.accent_color};
         padding: 2px 5px;
         border-radius: 4px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #{cfg.table_border_color};
     }}
 
     pre, .codehilite {{
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background-color: #{cfg.code_bg};
+        border: 1px solid #{cfg.table_border_color};
         border-radius: 8px;
         padding: 12px 16px;
         overflow-x: auto;
@@ -238,7 +243,7 @@ def get_print_css() -> str:
         background-color: transparent;
         padding: 0;
         border: none;
-        color: #0f172a;
+        color: {cfg.secondary_color};
     }}
 
     {pygments_css}
@@ -255,7 +260,7 @@ def get_print_css() -> str:
     }}
 
     li::marker {{
-        color: #0284c7;
+        color: {cfg.primary_color};
         font-weight: 600;
     }}
 
@@ -263,13 +268,13 @@ def get_print_css() -> str:
     hr {{
         border: 0;
         height: 1px;
-        background-color: #e2e8f0;
+        background-color: #{cfg.table_border_color};
         margin: 2em 0;
     }}
 
     /* Links */
     a {{
-        color: #0284c7;
+        color: {cfg.primary_color};
         text-decoration: none;
     }}
 
@@ -297,12 +302,13 @@ def get_print_css() -> str:
     }}
     """
 
-def markdown_to_html_document(markdown_text: str, title: str = "Dokumen") -> str:
+def markdown_to_html_document(markdown_text: str, title: str = "Dokumen", theme: Optional[str] = None) -> str:
     """
     Converts raw Markdown text into a fully-styled, standalone HTML document
-    configured for optimal A4 print rendering and browser viewing.
+    configured for optimal A4 print rendering and browser viewing with the specified theme.
     """
     clean_title = (title or "Dokumen").strip()
+    cfg = get_theme(theme)
 
     md = markdown.Markdown(
         extensions=[
@@ -328,14 +334,14 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen") -> str
     )
 
     body_html = md.convert(markdown_text or "")
-    css_content = get_print_css()
+    css_content = get_print_css(theme=theme)
 
     return f"""<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{clean_title} - Doc2MD Print</title>
+    <title>{clean_title} - Doc2MD Print ({cfg.name})</title>
     <style>
         {css_content}
     </style>
@@ -345,12 +351,12 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen") -> str
         <!-- Floating Interactive Toolbar (Automatically hidden when printed or exported to PDF) -->
         <div class="no-print">
             <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-                <span style="display:inline-block; width:10px; height:10px; background:#38bdf8; border-radius:50%;"></span>
+                <span style="display:inline-block; width:10px; height:10px; background:{cfg.primary_color}; border-radius:50%;"></span>
                 <span>{clean_title}</span>
-                <span style="font-size: 11px; opacity: 0.7; font-weight: normal;">• Doc2MD Print Preview</span>
+                <span style="font-size: 11px; opacity: 0.7; font-weight: normal;">• Doc2MD ({cfg.name})</span>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="window.print()" style="background: #0284c7; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                <button onclick="window.print()" style="background: {cfg.primary_color}; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
                     🖨️ Cetak / Simpan PDF
                 </button>
             </div>
@@ -364,7 +370,7 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen") -> str
 </body>
 </html>"""
 
-def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen") -> bytes:
+def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Optional[str] = None) -> bytes:
     """
     Renders Markdown to PDF bytes using an isolated headless Chromium/Edge instance.
     Guarantees crisp typography and pagination rules without awkward line/table breaks.
@@ -376,7 +382,7 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen") -> bytes:
             "Pastikan Microsoft Edge atau Google Chrome terpasang."
         )
 
-    html_content = markdown_to_html_document(markdown_text, title)
+    html_content = markdown_to_html_document(markdown_text, title, theme=theme)
 
     temp_html = None
     temp_pdf = None

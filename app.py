@@ -47,6 +47,7 @@ from core.chunker import count_tokens, chunk_by_tokens
 from core.docx_generator import markdown_to_docx_bytes
 from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
 from core.batch_exporter import create_batch_zip
+from core.themes import list_themes
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -117,11 +118,17 @@ async def convert_endpoint(
 
     return {"results": results}
 
+@app.get("/themes")
+async def get_themes_endpoint():
+    """Returns available document styling presets for Doc2MD."""
+    return {"themes": list_themes()}
+
 @app.post("/md-to-docx")
 async def md_to_docx_endpoint(
     file: UploadFile = File(None),
     markdown_text: str = Form(None),
-    filename: str = Form("dokumen")
+    filename: str = Form("dokumen"),
+    theme: str = Form("modern_slate")
 ):
     """Converts Markdown text or an uploaded .md file into a styled Word .docx file."""
     try:
@@ -139,7 +146,7 @@ async def md_to_docx_endpoint(
         if not content.strip():
             return Response(content="Konten Markdown kosong atau tidak valid.", status_code=400)
 
-        docx_bytes = markdown_to_docx_bytes(content)
+        docx_bytes = markdown_to_docx_bytes(content, theme=theme)
         clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', target_name) or "dokumen"
         if not clean_name.lower().endswith(".docx"):
             clean_name += ".docx"
@@ -157,7 +164,8 @@ async def md_to_docx_endpoint(
 async def md_to_pdf_endpoint(
     file: UploadFile = File(None),
     markdown_text: str = Form(None),
-    filename: str = Form("dokumen")
+    filename: str = Form("dokumen"),
+    theme: str = Form("modern_slate")
 ):
     """Converts Markdown text or an uploaded .md file into a professional PDF with CSS Paged Media."""
     try:
@@ -175,7 +183,7 @@ async def md_to_pdf_endpoint(
         if not content.strip():
             return Response(content="Konten Markdown kosong atau tidak valid.", status_code=400)
 
-        pdf_bytes = markdown_to_pdf_bytes(content, title=target_name)
+        pdf_bytes = markdown_to_pdf_bytes(content, title=target_name, theme=theme)
         clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', target_name) or "dokumen"
         if not clean_name.lower().endswith(".pdf"):
             clean_name += ".pdf"
@@ -194,7 +202,8 @@ async def md_to_html_endpoint(
     file: UploadFile = File(None),
     markdown_text: str = Form(None),
     filename: str = Form("dokumen"),
-    download: bool = Form(False)
+    download: bool = Form(False),
+    theme: str = Form("modern_slate")
 ):
     """Renders Markdown as a standalone styled HTML print-ready document."""
     try:
@@ -212,7 +221,7 @@ async def md_to_html_endpoint(
         if not content.strip():
             return Response(content="Konten Markdown kosong atau tidak valid.", status_code=400)
 
-        html_doc = markdown_to_html_document(content, title=target_name)
+        html_doc = markdown_to_html_document(content, title=target_name, theme=theme)
         clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', target_name) or "dokumen"
         if not clean_name.lower().endswith(".html"):
             clean_name += ".html"

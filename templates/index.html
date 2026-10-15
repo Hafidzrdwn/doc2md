@@ -301,6 +301,24 @@
                             </div>
                         </div>
 
+                        <!-- Theme Preset Selector -->
+                        <div class="space-y-1.5 pt-1">
+                            <label class="block text-xs font-semibold text-slate-300 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                                    Tema Dokumen (Word & PDF)
+                                </span>
+                                <span id="themeColorBadge" class="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-sm inline-block"></span>
+                            </label>
+                            <select id="exportThemeSelect" class="w-full bg-slate-950 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500 transition">
+                                <option value="modern_slate" selected>🎨 Modern Slate (Sky Blue & Minimalis)</option>
+                                <option value="corporate_navy">🏢 Corporate Navy (Royal Navy & Formal)</option>
+                                <option value="classic_academic">🎓 Classic Academic (Georgia & Formal Serif)</option>
+                                <option value="emerald_tech">🌿 Emerald Tech (Emerald Green & Tech Docs)</option>
+                            </select>
+                            <p id="themeDescText" class="text-[10px] text-slate-400 leading-tight">Aksen Sky Blue modern, font sans rapi, cocok untuk laporan umum.</p>
+                        </div>
+
                         <div class="pt-2 flex flex-col gap-2.5">
                             <!-- Primary Urgent Action: PDF Export -->
                             <button id="generatePdfBtn" class="w-full py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/25">
@@ -468,6 +486,29 @@
         const loadSampleReportBtn = document.getElementById('loadSampleReportBtn');
         const loadSampleProposalBtn = document.getElementById('loadSampleProposalBtn');
         const loadSampleMathDiagramBtn = document.getElementById('loadSampleMathDiagramBtn');
+        const exportThemeSelect = document.getElementById('exportThemeSelect');
+        const themeColorBadge = document.getElementById('themeColorBadge');
+        const themeDescText = document.getElementById('themeDescText');
+
+        const themeMeta = {
+            modern_slate: { color: '#0284c7', desc: 'Aksen Sky Blue modern, font sans rapi, cocok untuk laporan umum.' },
+            corporate_navy: { color: '#1e3a8a', desc: 'Gaya resmi formal perbankan dan korporat dengan aksen Deep Royal Navy.' },
+            classic_academic: { color: '#7f1d1d', desc: 'Format naskah ilmiah, tesis, dan naskah formal dengan tipografi serif tradisional.' },
+            emerald_tech: { color: '#059669', desc: 'Nuansa hijau emerald modern untuk dokumentasi sistem, devops, audit, dan teknis.' }
+        };
+
+        if (exportThemeSelect) {
+            exportThemeSelect.addEventListener('change', () => {
+                const val = exportThemeSelect.value;
+                const meta = themeMeta[val] || themeMeta.modern_slate;
+                if (themeColorBadge) themeColorBadge.style.backgroundColor = meta.color;
+                if (themeDescText) themeDescText.textContent = meta.desc;
+            });
+        }
+
+        function getSelectedTheme() {
+            return exportThemeSelect ? exportThemeSelect.value : 'modern_slate';
+        }
 
         let converted = [];
         let activeIdx = 0;
@@ -746,6 +787,7 @@
                 const fd = new FormData();
                 fd.append('markdown_text', outputArea.value);
                 fd.append('filename', baseName);
+                fd.append('theme', getSelectedTheme());
 
                 const res = await fetch('/md-to-docx', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error(await res.text());
@@ -778,6 +820,7 @@
                 const fd = new FormData();
                 fd.append('markdown_text', outputArea.value);
                 fd.append('filename', baseName);
+                fd.append('theme', getSelectedTheme());
 
                 const res = await fetch('/md-to-pdf', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error(await res.text());
@@ -1007,6 +1050,7 @@
                 fd.append('markdown_text', markdownContent);
                 fd.append('filename', baseName || 'dokumen');
                 fd.append('download', download ? 'true' : 'false');
+                fd.append('theme', getSelectedTheme());
 
                 const res = await fetch('/md-to-html', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error(await res.text());
@@ -1046,6 +1090,7 @@
                 const fd = new FormData();
                 fd.append('markdown_text', text);
                 fd.append('filename', targetDocxName.value || 'dokumen');
+                fd.append('theme', getSelectedTheme());
 
                 const res = await fetch('/md-to-pdf', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error(await res.text());
@@ -1080,6 +1125,7 @@
                 const fd = new FormData();
                 fd.append('markdown_text', text);
                 fd.append('filename', targetDocxName.value || 'dokumen');
+                fd.append('theme', getSelectedTheme());
 
                 const res = await fetch('/md-to-docx', { method: 'POST', body: fd });
                 if (!res.ok) throw new Error(await res.text());

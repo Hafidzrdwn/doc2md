@@ -52,7 +52,16 @@
 - **Diagram Alur Mermaid.js**: Merender diagram alur grafis (*flowchart*, *sequence*, dll.) dari blok ` ```mermaid ` langsung di layar.
 - **Preset Template Praktis**: Tersedia tombol preset dokumen cepat (Laporan Eksekutif, Proposal Fitur, dan Spesifikasi Teknis Diagram/Formula).
 
-### 9. 💻 Desktop Native & Offline
+### 9. 🎨 Professional Styling Presets & Theme Engine
+- **4 Preset Tema Standar Industri**:
+  - 🎨 **Modern Slate** (Default): Aksen Sky Blue (`#0284C7`), font Plus Jakarta Sans / Calibri, layout minimalis elegan untuk kebutuhan umum.
+  - 🏢 **Corporate Navy**: Aksen Deep Royal Navy (`#1E3A8A`), font Segoe UI, gaya formal berwibawa untuk laporan bisnis, perbankan, dan dokumen resmi.
+  - 🎓 **Classic Academic**: Aksen Formal Crimson (`#7F1D1D`), font serif tradisional Times New Roman & Georgia, ideal untuk naskah ilmiah, tesis, dan format akademis.
+  - 🌿 **Emerald Tech**: Aksen Emerald Green (`#059669`), font modern berkarakter teknis, cocok untuk dokumentasi sistem, devops, dan audit teknis.
+- **Konsistensi Visual Lintas-Format**: Token tema (warna heading H1-H4, background tabel, border sel, blockquote, dan bullet list) diterapkan secara seragam baik pada ekspor Microsoft Word (`.docx`) maupun PDF/HTML cetak (`.pdf` / `.html`).
+- **Theme Selector Interaktif**: Pemilih tema visual dengan indikator warna dinamis dan deskripsi instan langsung di toolbar editor studio.
+
+### 10. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -68,7 +77,8 @@ doc-to-markdown/
 │   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
 │   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
-│   └── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
+│   ├── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
+│   └── themes.py               # Centralized styling presets & theme engine
 ├── templates/                  # Frontend UI templates
 │   └── index.html              # Modern responsive web & desktop interface
 ├── tests/                      # Automated test suite
@@ -79,7 +89,8 @@ doc-to-markdown/
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
 │   ├── test_image_extractor.py # Unit tests untuk ekstraksi aset gambar nyata
-│   └── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
+│   ├── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
+│   └── test_themes.py          # Unit tests untuk preset tema Word, PDF & HTML
 ├── app.py                      # Application entrypoint & Desktop GUI runner
 ├── app.spec                    # PyInstaller standalone build configuration
 ├── md2docx.py                  # Backward-compatible proxy module
