@@ -4,6 +4,7 @@ import sys
 import shutil
 import tempfile
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -41,6 +42,7 @@ from core.converter import ALLOWED_EXTENSIONS, convert_file_to_markdown
 from core.chunker import count_tokens, chunk_by_tokens
 from core.docx_generator import markdown_to_docx_bytes
 from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
+from core.batch_exporter import create_batch_zip
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -220,6 +222,27 @@ async def md_to_html_endpoint(
     except Exception as exc:
         logger.error(f"Gagal membuat file HTML: {exc}", exc_info=True)
         return Response(content=f"Terjadi kesalahan saat membuat HTML: {str(exc)}", status_code=500)
+
+@app.post("/download-batch-zip")
+async def download_batch_zip_endpoint(request: Request):
+    """Packages all converted documents, chunks, and a manifest into an in-memory ZIP archive."""
+    try:
+        body = await request.json()
+        items = body.get("items", [])
+        if not items:
+            return Response(content="Tidak ada berkas yang dipilih untuk diunduh.", status_code=400)
+
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_bytes = create_batch_zip(items, archive_title=f"doc2md_export_{timestamp_str}")
+
+        return Response(
+            content=zip_bytes,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="doc2md_batch_{timestamp_str}.zip"'}
+        )
+    except Exception as exc:
+        logger.error(f"Gagal membuat arsip ZIP: {exc}", exc_info=True)
+        return Response(content=f"Terjadi kesalahan saat membuat arsip ZIP: {str(exc)}", status_code=500)
 
 def run_uvicorn_server(**kwargs):
     """Runs the internal ASGI server for Desktop UI."""

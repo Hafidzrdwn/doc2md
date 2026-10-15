@@ -39,7 +39,12 @@
 - **Sintaks Highlighting Elegan**: Blok kode diformat dengan pewarnaan sintaks Pygments profesional.
 - **Format Siap Cetak (A4 Standard)**: Dilengkapi nomor halaman otomatis (*Halaman X dari Y*) dan tombol cetak instan.
 
-### 7. 💻 Desktop Native & Offline
+### 7. 📦 Batch ZIP Archive Exporter & Manifest
+- **1-Klik Ekspor Massal**: Mengemas seluruh dokumen hasil konversi menjadi satu arsip `.zip` yang rapi.
+- **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
+- **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
+
+### 8. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -50,6 +55,7 @@
 doc-to-markdown/
 ├── core/                       # Logika inti (Core business logic)
 │   ├── __init__.py             # Public API export
+│   ├── batch_exporter.py       # In-memory batch ZIP packaging & manifest generator
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion, image annotator, sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
@@ -59,6 +65,7 @@ doc-to-markdown/
 ├── tests/                      # Automated test suite
 │   ├── __init__.py
 │   ├── test_api.py             # FastAPI endpoint integration tests
+│   ├── test_batch_export.py    # Unit tests untuk pembuatan arsip ZIP & manifest
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists

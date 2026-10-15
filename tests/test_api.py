@@ -79,3 +79,17 @@ def test_md_to_html_endpoint():
     )
     assert response_dl.status_code == 200
     assert "attachment; filename=\"hasil_uji_html.html\"" in response_dl.headers["content-disposition"]
+
+def test_download_batch_zip_endpoint():
+    items = [
+        {"filename": "doc1.txt", "markdown": "# Doc 1", "token_count": 10, "char_count": 10},
+        {"filename": "doc2.pdf", "markdown": "# Doc 2", "token_count": 20, "char_count": 20}
+    ]
+    response = client.post(
+        "/download-batch-zip",
+        json={"items": items}
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert "attachment; filename=\"doc2md_batch_" in response.headers["content-disposition"]
+    assert len(response.content) > 0

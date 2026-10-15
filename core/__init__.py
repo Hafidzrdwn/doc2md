@@ -16,6 +16,7 @@ from .pdf_generator import (
     markdown_to_html_document,
     find_chromium_executable,
 )
+from .batch_exporter import create_batch_zip
 
 __all__ = [
     "count_tokens",
@@ -32,4 +33,5 @@ __all__ = [
     "markdown_to_pdf_bytes",
     "markdown_to_html_document",
     "find_chromium_executable",
+    "create_batch_zip",
 ]
