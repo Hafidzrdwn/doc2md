@@ -49,6 +49,7 @@ from .folder_watcher import (
     global_folder_watcher,
     wait_until_file_ready,
 )
+from .diff_viewer import compute_document_diff
 
 __all__ = [
     "count_tokens",
@@ -88,6 +89,7 @@ __all__ = [
     "FolderWatcher",
     "global_folder_watcher",
     "wait_until_file_ready",
+    "compute_document_diff",
 ]
 
 

@@ -83,7 +83,15 @@
 - **Feed Riwayat Real-Time**: Antarmuka studio menyediakan dashboard pemantau live dengan indikator status aktif/nonaktif, log konversi per dokumen, dan metrik token.
 - **REST API Kontrol**: Dilengkapi endpoint `GET /watcher/status`, `POST /watcher/start`, `POST /watcher/stop`, `GET /watcher/history`, dan `POST /watcher/clear-history`.
 
-### 13. 💻 Desktop Native & Offline
+### 13. 🔍 Visual Document Diff Viewer (Komparasi Dokumen Visual)
+- **Komparasi Antar-Versi Real-Time**: Membandingkan dua naskah Markdown atau file dokumen secara langsung dari input teks bebas maupun berkas dokumen yang diunggah.
+- **Tampilan Fleksibel (Side-by-Side & Unified)**:
+  - **Side-by-Side (Berdampingan)**: Menyajikan kolom Dokumen A dan Dokumen B secara simetris dengan baris sejajar (*row padding alignment*), mempermudah review perubahan berdampingan.
+  - **Unified (Inline Git-Style)**: Tampilan terpadu satu aliran teks dengan penanda baris merah (`-`) untuk baris terhapus dan hijau (`+`) untuk baris yang baru ditambahkan.
+- **Analisis Delta Token & Karakter**: Mengukur persentase kemiripan dokumen (*similarity ratio*), delta token OpenAI `tiktoken`, penambahan/pengurangan baris teks, serta selisih karakter secara akurat.
+- **Integrasi UI & File Upload**: Dilengkapi tab *Document Diff*, opsi swap dokumen instan, pemuat contoh revisi dokumen, serta upload berkas multi-format untuk komparasi langsung.
+
+### 14. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -97,6 +105,7 @@ doc-to-markdown/
 │   ├── batch_exporter.py       # In-memory batch ZIP packaging & manifest generator
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion & text sanitization
+│   ├── diff_viewer.py          # Visual document diff computation (side-by-side & unified)
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
 │   ├── folder_watcher.py       # Background folder watcher & auto-convert engine
 │   ├── frontmatter_formatter.py# Obsidian / Notion YAML frontmatter engine
@@ -112,6 +121,7 @@ doc-to-markdown/
 │   ├── test_batch_export.py    # Unit tests untuk pembuatan arsip ZIP & manifest
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
+│   ├── test_diff_viewer.py     # Unit tests untuk komparasi diff dokumen visual & API
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
 │   ├── test_folder_watcher.py  # Unit tests untuk folder watcher & auto-convert
 │   ├── test_frontmatter.py     # Unit tests untuk format YAML frontmatter & API
