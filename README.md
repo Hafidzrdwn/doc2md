@@ -100,27 +100,47 @@
 
 ```text
 doc-to-markdown/
-├── core/                       # Logika inti (Core business logic)
+├── core/                       # Logika inti (Core business logic - < 350 baris per file)
 │   ├── __init__.py             # Public API export
 │   ├── batch_exporter.py       # In-memory batch ZIP packaging & manifest generator
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── diff_viewer.py          # Visual document diff computation (side-by-side & unified)
-│   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   ├── docx_generator.py       # Markdown-to-DOCX engine & document builder
+│   ├── docx_helpers.py         # Word XML shading, cell padding & text fragment cleaner
 │   ├── folder_watcher.py       # Background folder watcher & auto-convert engine
 │   ├── frontmatter_formatter.py# Obsidian / Notion YAML frontmatter engine
 │   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
 │   ├── ocr_engine.py           # Offline OCR engine (RapidOCR / ONNX)
 │   ├── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
+│   ├── pdf_styles.py           # Chromium discovery & CSS Paged Media print styling
 │   └── themes.py               # Centralized styling presets & theme engine
-├── static/                     # Aset statis terpisah (Modular frontend)
+├── routers/                    # Modular FastAPI API Routers (< 150 baris per file)
+│   ├── __init__.py             # Routers package aggregator
+│   ├── converter.py            # /convert & /format-frontmatter endpoints
+│   ├── exporter.py             # /md-to-docx, /md-to-pdf, /md-to-html, /download-batch-zip
+│   ├── watcher.py              # /watcher/* background automation endpoints
+│   └── diff.py                 # /diff & /diff/files visual comparator endpoints
+├── static/                     # Aset statis frontend modular (< 350 baris per file)
 │   ├── css/
 │   │   └── style.css           # Custom styles & design system tokens
 │   └── js/
-│       └── app.js              # Client application logic & handlers
-├── templates/                  # Frontend UI templates
-│   └── index.html              # Clean semantic web & desktop interface
-├── tests/                      # Automated test suite
+│       ├── common.js           # Shared state, theme listener, and HTML escape utility
+│       ├── samples.js          # Preset template data library
+│       ├── doc2md.js           # Document-to-Markdown upload & card management
+│       ├── editor.js           # Split-screen editor, KaTeX, Mermaid & export actions
+│       ├── watcher.js          # Folder watcher real-time polling & feed UI
+│       ├── diff.js             # Document diff side-by-side & unified table renderers
+│       └── main.js             # Mode switcher navigation & app lifecycle
+├── templates/                  # Frontend UI templates modular (< 200 baris per file)
+│   ├── components/             # Reusable Jinja2 partials
+│   │   ├── header.html         # Top navigation, logo, and theme selector
+│   │   ├── view_doc2md.html    # View 1: Converter dropzone & workspace
+│   │   ├── view_md2doc.html    # View 2: Split-screen studio & preview
+│   │   ├── view_watcher.html   # View 3: Folder watcher control dashboard
+│   │   └── view_diff.html      # View 4: Visual document diff comparator
+│   └── index.html              # Clean semantic master layout (44 baris)
+├── tests/                      # Automated test suite (61 unit tests)
 │   ├── __init__.py
 │   ├── test_api.py             # FastAPI endpoint integration tests
 │   ├── test_batch_export.py    # Unit tests untuk pembuatan arsip ZIP & manifest
@@ -134,7 +154,7 @@ doc-to-markdown/
 │   ├── test_ocr.py             # Unit tests untuk offline OCR gambar & PDF scan
 │   ├── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
 │   └── test_themes.py          # Unit tests untuk preset tema Word, PDF & HTML
-├── app.py                      # Application entrypoint & Desktop GUI runner
+├── app.py                      # Application entrypoint & Desktop GUI runner (91 baris)
 ├── app.spec                    # PyInstaller standalone build configuration
 ├── md2docx.py                  # Backward-compatible proxy module
 ├── requirements.txt            # Daftar dependensi terstandar

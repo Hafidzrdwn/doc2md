@@ -1,0 +1,194 @@
+<section id="viewDiff" class="hidden flex flex-col gap-5">
+            <!-- Input & Comparator Panel -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shadow-inner">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                                <span>Visual Document Diff Viewer</span>
+                                <span class="text-[10px] bg-sky-950/80 text-sky-400 border border-sky-800/60 px-2 py-0.5 rounded-full font-mono">Side-by-Side & Unified</span>
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Bandingkan dua versi dokumen Markdown dengan penanda perubahan baris & analisis delta token LLM</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Controls -->
+                    <div class="flex items-center gap-2">
+                        <button id="btnLoadDiffSample" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Muat naskah contoh perubahan revisi">
+                            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span>Contoh Revisi</span>
+                        </button>
+                        <button id="btnSwapDiff" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Tukar posisi Dokumen A dan B">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <span>Tukar (A ⇄ B)</span>
+                        </button>
+                        <button id="btnExecuteDiff" class="px-4 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-sky-600/20">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <span>Bandingkan Dokumen</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dual Input Areas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Document A Input -->
+                    <div class="flex flex-col gap-2 bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                        <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-800/60">
+                            <span class="font-bold text-rose-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                Dokumen A (Versi Awal / Asli)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <button id="btnPullFromActiveDoc" class="text-[11px] text-sky-400 hover:underline">Muat dari Tab Aktif</button>
+                                <label class="cursor-pointer text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
+                                    Unggah File
+                                    <input type="file" id="diffFileInputA" class="hidden" accept=".md,.txt,.docx,.pdf" />
+                                </label>
+                            </div>
+                        </div>
+                        <input type="text" id="diffTitleA" value="Dokumen Asli (v1)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-rose-500" placeholder="Judul Dokumen A..." />
+                        <textarea id="diffInputA" class="w-full h-44 bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-none focus:outline-none focus:border-rose-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen A di sini..." spellcheck="false"></textarea>
+                    </div>
+
+                    <!-- Document B Input -->
+                    <div class="flex flex-col gap-2 bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+                        <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-800/60">
+                            <span class="font-bold text-emerald-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                Dokumen B (Versi Revisi / Baru)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <button id="btnPullFromStudioDoc" class="text-[11px] text-indigo-400 hover:underline">Muat dari Editor Studio</button>
+                                <label class="cursor-pointer text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
+                                    Unggah File
+                                    <input type="file" id="diffFileInputB" class="hidden" accept=".md,.txt,.docx,.pdf" />
+                                </label>
+                            </div>
+                        </div>
+                        <input type="text" id="diffTitleB" value="Dokumen Revisi (v2)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-emerald-500" placeholder="Judul Dokumen B..." />
+                        <textarea id="diffInputB" class="w-full h-44 bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-none focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen B di sini..." spellcheck="false"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diff Output & Visual Comparison Section -->
+            <div id="diffResultsSection" class="hidden flex flex-col gap-4">
+                <!-- Analytics Summary Ribbon -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    <!-- Similarity Card -->
+                    <div class="col-span-2 bg-gradient-to-br from-slate-900 to-indigo-950/50 border border-indigo-900/40 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                        <div>
+                            <span class="text-[11px] text-slate-400 font-medium">Tingkat Kemiripan Naskah</span>
+                            <div class="flex items-baseline gap-2 mt-0.5">
+                                <span id="diffSimilarityScore" class="text-2xl font-black text-sky-400 font-mono">100%</span>
+                                <span class="text-xs text-slate-400">identik</span>
+                            </div>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold font-mono text-sm">
+                            %
+                        </div>
+                    </div>
+
+                    <!-- Token Delta Card -->
+                    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between">
+                        <span class="text-[11px] text-slate-400">Selisih Token</span>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="diffTokenDelta" class="text-base font-bold font-mono text-emerald-400">0</span>
+                            <span class="text-[10px] text-slate-500">tokens</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-1 font-mono">
+                            <span id="diffTokenA">0</span> ➔ <span id="diffTokenB">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Added Lines -->
+                    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between">
+                        <span class="text-[11px] text-slate-400">Baris Ditambah</span>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="diffAddedLines" class="text-base font-bold font-mono text-emerald-400">+0</span>
+                            <span class="text-[10px] text-slate-500">baris</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-500/80 font-mono">insertions</span>
+                    </div>
+
+                    <!-- Removed Lines -->
+                    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between">
+                        <span class="text-[11px] text-slate-400">Baris Dihapus</span>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="diffRemovedLines" class="text-base font-bold font-mono text-rose-400">-0</span>
+                            <span class="text-[10px] text-slate-500">baris</span>
+                        </div>
+                        <span class="text-[10px] text-rose-500/80 font-mono">deletions</span>
+                    </div>
+
+                    <!-- Modified Lines -->
+                    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-3.5 flex flex-col justify-between">
+                        <span class="text-[11px] text-slate-400">Baris Berubah</span>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="diffModifiedLines" class="text-base font-bold font-mono text-amber-400">~0</span>
+                            <span class="text-[10px] text-slate-500">baris</span>
+                        </div>
+                        <span class="text-[10px] text-amber-500/80 font-mono">modifications</span>
+                    </div>
+                </div>
+
+                <!-- Diff Viewer Canvas -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                    <!-- Canvas Toolbar -->
+                    <div class="px-4 py-2.5 bg-slate-950/90 border-b border-slate-800 flex justify-between items-center text-xs flex-wrap gap-2">
+                        <div class="flex items-center gap-3">
+                            <span class="font-semibold text-slate-200">Perbandingan Dokumen</span>
+                            <!-- View Style Toggle -->
+                            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-[11px]">
+                                <button id="btnDiffSideBySide" class="px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm">
+                                    <span>🌓 Side-by-Side</span>
+                                </button>
+                                <button id="btnDiffUnified" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+                                    <span>📑 Unified (Inline)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-rose-500/30 border border-rose-500"></span> Dihapus (A)</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500"></span> Ditambah (B)</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700"></span> Tetap</span>
+                        </div>
+                    </div>
+
+                    <!-- Side-by-Side Container -->
+                    <div id="diffSideBySideContainer" class="flex-1 overflow-x-auto min-h-[400px] max-h-[640px] overflow-y-auto">
+                        <table class="w-full text-xs font-mono border-collapse select-text">
+                            <thead class="sticky top-0 bg-slate-950 text-slate-400 border-b border-slate-800 z-10 text-[11px]">
+                                <tr>
+                                    <th class="w-12 py-2 px-2 text-right border-r border-slate-800">#A</th>
+                                    <th id="diffHeadTitleA" class="py-2 px-3 text-left w-1/2 border-r border-slate-800 text-rose-300">Dokumen A (Versi Asli)</th>
+                                    <th class="w-12 py-2 px-2 text-right border-r border-slate-800">#B</th>
+                                    <th id="diffHeadTitleB" class="py-2 px-3 text-left w-1/2 text-emerald-300">Dokumen B (Versi Revisi)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="diffSideBySideTableBody" class="divide-y divide-slate-800/40"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Unified Container -->
+                    <div id="diffUnifiedContainer" class="hidden flex-1 overflow-x-auto min-h-[400px] max-h-[640px] overflow-y-auto">
+                        <table class="w-full text-xs font-mono border-collapse select-text">
+                            <thead class="sticky top-0 bg-slate-950 text-slate-400 border-b border-slate-800 z-10 text-[11px]">
+                                <tr>
+                                    <th class="w-12 py-2 px-2 text-right border-r border-slate-800">#A</th>
+                                    <th class="w-12 py-2 px-2 text-right border-r border-slate-800">#B</th>
+                                    <th class="w-8 py-2 px-1 text-center border-r border-slate-800">+/-</th>
+                                    <th class="py-2 px-3 text-left">Isi Baris Naskah</th>
+                                </tr>
+                            </thead>
+                            <tbody id="diffUnifiedTableBody" class="divide-y divide-slate-800/40"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>

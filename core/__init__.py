@@ -16,11 +16,12 @@ from .image_extractor import (
     extract_document_images,
     append_image_markdown_gallery,
 )
-from .docx_generator import markdown_to_docx_bytes, clean_table_cell_text, clean_html_formatting
+from .docx_helpers import clean_table_cell_text, clean_html_formatting
+from .docx_generator import markdown_to_docx_bytes
+from .pdf_styles import find_chromium_executable
 from .pdf_generator import (
     markdown_to_pdf_bytes,
     markdown_to_html_document,
-    find_chromium_executable,
 )
 from .batch_exporter import create_batch_zip
 from .themes import (

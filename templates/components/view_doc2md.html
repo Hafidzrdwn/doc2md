@@ -1,0 +1,174 @@
+<section id="viewDoc2Md" class="flex flex-col gap-5">
+            
+            <!-- Controls & Upload Area -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Dropzone (3 cols) -->
+                <div id="dropzone" class="md:col-span-3 relative overflow-hidden border-2 border-dashed border-slate-700 hover:border-sky-500 bg-slate-900/50 rounded-2xl p-7 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 group">
+                    <input type="file" id="fileInput" class="hidden" multiple accept=".pdf,.docx,.xlsx,.xls,.pptx,.csv,.txt,.json,.xml,.html,.md,.png,.jpg,.jpeg,.webp,.bmp" />
+                    
+                    <!-- Normal State Inside Dropzone -->
+                    <div id="dropzoneNormal" class="flex flex-col items-center gap-2 transition group-hover:scale-[1.01]">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shadow-inner group-hover:bg-sky-500/20 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-200">Klik atau seret dokumen ke sini <span class="text-sky-400 font-normal">(bisa banyak file sekaligus)</span></p>
+                        <p class="text-xs text-slate-400">Mendukung <span class="text-slate-300 font-medium">PDF (Teks & Scan), Word (.docx), Excel, PPTX, Teks, Gambar (.png, .jpg dengan Offline OCR)</span></p>
+                    </div>
+
+                    <!-- Uploading Active State Inside Dropzone -->
+                    <div id="dropzoneLoading" class="hidden flex-col items-center justify-center py-2 gap-3 w-full max-w-md">
+                        <div class="w-10 h-10 border-3 border-sky-500/30 border-t-sky-400 rounded-full animate-spin"></div>
+                        <div class="w-full text-center">
+                            <p class="text-sm font-semibold text-sky-300" id="uploadStatusText">Sedang mengonversi dokumen...</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Mengekstrak teks, tabel, dan memetakan konteks visual gambar</p>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-sky-500 to-indigo-500 h-full w-2/3 animate-pulse rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chunking & Config Box (1 col) -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between text-xs space-y-4 shadow-lg">
+                    <div class="space-y-3.5">
+                        <div>
+                            <div class="flex items-center gap-1.5 font-semibold text-slate-200 mb-1.5">
+                                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                Auto-Split / Chunking
+                            </div>
+                            <select id="chunkSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-sky-500 transition">
+                                <option value="0">Dokumen Utuh (No Split)</option>
+                                <option value="8000">Split tiap ~8,000 token</option>
+                                <option value="16000">Split tiap ~16,000 token</option>
+                                <option value="32000">Split tiap ~32,000 token</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-1.5 font-semibold text-slate-200 mb-1.5">
+                                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                YAML Frontmatter
+                            </div>
+                            <select id="frontmatterSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-purple-500 transition">
+                                <option value="none">Tanpa Header (Default)</option>
+                                <option value="obsidian">Obsidian (Tags & Aliases)</option>
+                                <option value="notion">Notion (Title, Date, Status)</option>
+                                <option value="minimal">Minimal (Title, Source, Date)</option>
+                            </select>
+                        </div>
+
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Auto-split untuk muat jendela LLM, atau sematkan metadata YAML agar dokumen siap diimpor ke Obsidian Vault / Notion.
+                        </p>
+                    </div>
+                    <div class="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Status Konversi:</span>
+                        <span id="quickStatusBadge" class="text-emerald-400 font-medium">Siap</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail File Terunggah (UX Cards List) -->
+            <div id="fileDetailsSection" class="hidden flex flex-col gap-2.5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+                        <span>Daftar Dokumen Terunggah</span>
+                        <span id="fileDetailsCount" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700 font-mono">0</span>
+                    </h3>
+                    <span class="text-[11px] text-slate-400">Klik item untuk melihat atau menghapus dari antrean</span>
+                </div>
+                
+                <div id="fileCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    <!-- File cards will be rendered here dynamically -->
+                </div>
+            </div>
+
+            <!-- Result Workspace -->
+            <div id="workspace" class="hidden flex-1 flex flex-col gap-3 min-h-[500px]">
+                
+                <!-- Toolbar Row -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+                    <!-- File Tabs -->
+                    <div id="tabsContainer" class="flex gap-1.5 overflow-x-auto max-w-full sm:max-w-[55%] pb-1 scrollbar-thin"></div>
+
+                    <!-- Action Tools -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Preset Prompts -->
+                        <select id="promptPreset" class="bg-slate-950 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                            <option value="raw">Raw Markdown</option>
+                            <option value="summarize">Wrap: Rangkuman & Action Items</option>
+                            <option value="qa">Wrap: Bahan Tanya Jawab</option>
+                            <option value="audit">Wrap: Audit Kritis Dokumen</option>
+                        </select>
+
+                        <!-- Frontmatter Quick Formatter -->
+                        <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg p-0.5 text-xs">
+                            <select id="view1FrontmatterPreset" class="bg-transparent text-slate-300 text-xs px-2 py-1 focus:outline-none cursor-pointer">
+                                <option value="obsidian">YAML: Obsidian</option>
+                                <option value="notion">YAML: Notion</option>
+                                <option value="minimal">YAML: Minimal</option>
+                            </select>
+                            <button id="view1ApplyFrontmatterBtn" class="px-2.5 py-1 bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/60 rounded-md text-xs font-semibold transition" title="Sematkan / perbarui YAML frontmatter pada dokumen aktif">
+                                + YAML
+                            </button>
+                        </div>
+
+                        <button id="copyBtn" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                            <span>Salin ke Clipboard</span>
+                        </button>
+
+                        <button id="exportCurrentToDocxBtn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Ubah hasil markdown aktif ini langsung menjadi file Word .docx">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Ekspor .DOCX</span>
+                        </button>
+
+                        <button id="exportCurrentToPdfBtn" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Ubah hasil markdown aktif ini langsung menjadi file PDF A4 rapi">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            <span>Ekspor .PDF</span>
+                        </button>
+
+                        <button id="exportCurrentToHtmlBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Buka tampilan cetak / dokumen HTML interaktif">
+                            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>Preview Cetak</span>
+                        </button>
+
+                        <button id="mergeBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Bundle (.md)</span>
+                        </button>
+
+                        <button id="exportAllZipBtn" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-sm" title="Kemasi semua dokumen yang terkonversi, chunks, dan manifest ke dalam satu file ZIP">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                            <span id="exportAllZipBtnText">Unduh Semua (.ZIP)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chunk Tabs (Jika ada split) -->
+                <div id="chunkTabs" class="hidden flex items-center gap-2 text-xs bg-slate-900/40 px-3 py-2 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 text-xs font-semibold flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+                        Part Dokumen:
+                    </span>
+                    <div id="chunkBtnList" class="flex gap-1.5 flex-wrap"></div>
+                </div>
+
+                <!-- Editor / Output -->
+                <div class="flex-1 flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="px-4 py-2.5 bg-slate-950/90 border-b border-slate-800/80 flex justify-between items-center text-xs text-slate-400">
+                        <div class="flex items-center gap-2">
+                            <span id="activeFileInfo" class="font-mono text-slate-200 font-medium">Ready</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="savingStat" class="text-slate-400 font-mono">0 karakter</span>
+                            <span id="tokenBadge" class="font-mono bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-800/60 font-semibold text-[11px]">0 tokens</span>
+                        </div>
+                    </div>
+                    <textarea id="outputArea" class="w-full flex-1 bg-transparent p-4 text-xs font-mono text-slate-300 resize-none focus:outline-none select-text leading-relaxed min-h-[420px]" spellcheck="false"></textarea>
+                </div>
+
+            </div>
+        </section>
