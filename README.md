@@ -18,9 +18,10 @@
 ### 2. 🤖 AI-Ready Text Sanitization
 - Membersihkan spasi liar di akhir baris, enter berlebih, dan karakter tersembunyi (*zero-width spaces*, BOM: `\u200B-\u200D`, `\uFEFF`) yang sering mengaburkan pemrosesan Large Language Model (LLM).
 
-### 3. 🖼️ Visual Context Annotator (PDF & Image Detection)
-- Memindai dokumen PDF untuk mendeteksi keberadaan gambar dan diagram teknis.
-- Menyematkan blok anotasi konteks di awal output Markdown yang memberitahukan AI mengenai jumlah gambar dan halaman tempat gambar tersebut berada, sehingga model AI memiliki konteks visual yang utuh.
+### 3. 🖼️ Real Image Asset Extraction & Markdown Auto-Linking
+- **Ekstraksi Gambar Nyata**: Mengekstrak diagram, infografis, dan gambar biner asli dari dokumen PDF (via `pypdfium2`), DOCX, PPTX, dan XLSX ke folder aset lokal (`assets/`).
+- **Penyematan Link Otomatis**: Otomatis menyisipkan galeri visual dan tautan Markdown `![Caption](assets/<nama_gambar>.png)` langsung di output teks sehingga gambar langsung tampil di Obsidian, VS Code, atau Markdown previewer mana pun.
+- **Visual Context Annotator**: Tetap menyertakan metadata jumlah dan lokasi halaman gambar untuk membantu penalaran LLM/AI.
 
 ### 4. 🔢 Token Counting & Smart Chunking
 - Terintegrasi langsung dengan tokenizer resmi OpenAI `tiktoken` (`cl100k_base`).
@@ -41,6 +42,7 @@
 
 ### 7. 📦 Batch ZIP Archive Exporter & Manifest
 - **1-Klik Ekspor Massal**: Mengemas seluruh dokumen hasil konversi menjadi satu arsip `.zip` yang rapi.
+- **Inklusi Folder Assets**: Seluruh aset gambar hasil ekstraksi dikemas utuh ke dalam folder `assets/` di dalam ZIP.
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
 
@@ -57,8 +59,9 @@ doc-to-markdown/
 │   ├── __init__.py             # Public API export
 │   ├── batch_exporter.py       # In-memory batch ZIP packaging & manifest generator
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
-│   ├── converter.py            # MarkItDown conversion, image annotator, sanitization
+│   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
 │   └── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
 ├── templates/                  # Frontend UI templates
 │   └── index.html              # Modern responsive web & desktop interface
@@ -69,6 +72,7 @@ doc-to-markdown/
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
+│   ├── test_image_extractor.py # Unit tests untuk ekstraksi aset gambar nyata
 │   └── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
 ├── app.py                      # Application entrypoint & Desktop GUI runner
 ├── app.spec                    # PyInstaller standalone build configuration

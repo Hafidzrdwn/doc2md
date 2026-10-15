@@ -514,7 +514,10 @@
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
                         <span>${item.raw_size_kb} KB</span>
-                        <span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span>
+                        <div class="flex items-center gap-1.5">
+                            ${(item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 font-sans" title="${item.images_count} gambar diekstrak">🖼️ ${item.images_count}</span>` : ''}
+                            <span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span>
+                        </div>
                     </div>
                 `;
 
@@ -607,7 +610,8 @@
             const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
             outputArea.value = applyPromptPreset(rawText, curr.filename);
             
-            activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw`;
+            const imgNote = (curr.images_count && curr.images_count > 0) ? ` • 🖼️ ${curr.images_count} gambar diekstrak` : '';
+            activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw${imgNote}`;
             savingStat.textContent = `${curr.char_count.toLocaleString()} karakter`;
             tokenBadge.textContent = `${curr.token_count.toLocaleString()} tokens`;
         }

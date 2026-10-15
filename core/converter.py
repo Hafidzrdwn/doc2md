@@ -88,10 +88,17 @@ def annotate_pdf_images(file_path: str, markdown_text: str) -> str:
         logger.warning(f"Gagal memeriksa gambar PDF: {exc}")
         return markdown_text
 
-def convert_file_to_markdown(file_path: str, original_filename: str) -> str:
+from core.image_extractor import (
+    extract_document_images,
+    append_image_markdown_gallery,
+    ExtractedImage,
+)
+
+def convert_file_to_markdown_with_assets(file_path: str, original_filename: str) -> tuple[str, list[ExtractedImage]]:
     """
-    Converts a supported file into clean, AI-optimized Markdown.
-    Includes contextual image annotations for PDFs and image files.
+    Converts a supported file into clean, AI-optimized Markdown
+    and extracts real image/diagram assets from PDF and Office documents.
+    Returns (markdown_text, list_of_extracted_images).
     """
     ext = os.path.splitext(original_filename)[1].lower()
     raw_size = os.path.getsize(file_path)
@@ -99,6 +106,8 @@ def convert_file_to_markdown(file_path: str, original_filename: str) -> str:
     converter = get_markitdown()
     converted = converter.convert(file_path)
     cleaned = clean_markdown_for_ai(converted.text_content)
+
+    images = extract_document_images(file_path, original_filename)
 
     if ext == ".pdf":
         cleaned = annotate_pdf_images(file_path, cleaned)
@@ -111,4 +120,15 @@ def convert_file_to_markdown(file_path: str, original_filename: str) -> str:
             + meta_body
         )
 
+    if images:
+        cleaned = append_image_markdown_gallery(cleaned, images, original_filename)
+
+    return cleaned, images
+
+def convert_file_to_markdown(file_path: str, original_filename: str) -> str:
+    """
+    Converts a supported file into clean, AI-optimized Markdown.
+    Includes contextual image annotations and visual asset links.
+    """
+    cleaned, _ = convert_file_to_markdown_with_assets(file_path, original_filename)
     return cleaned

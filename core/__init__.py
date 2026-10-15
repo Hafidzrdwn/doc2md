@@ -9,6 +9,12 @@ from .converter import (
     clean_markdown_for_ai,
     annotate_pdf_images,
     convert_file_to_markdown,
+    convert_file_to_markdown_with_assets,
+)
+from .image_extractor import (
+    ExtractedImage,
+    extract_document_images,
+    append_image_markdown_gallery,
 )
 from .docx_generator import markdown_to_docx_bytes, clean_table_cell_text, clean_html_formatting
 from .pdf_generator import (
@@ -27,6 +33,10 @@ __all__ = [
     "clean_markdown_for_ai",
     "annotate_pdf_images",
     "convert_file_to_markdown",
+    "convert_file_to_markdown_with_assets",
+    "ExtractedImage",
+    "extract_document_images",
+    "append_image_markdown_gallery",
     "markdown_to_docx_bytes",
     "clean_table_cell_text",
     "clean_html_formatting",

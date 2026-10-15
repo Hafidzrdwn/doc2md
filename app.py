@@ -38,7 +38,11 @@ else:
 
 logger = logging.getLogger("doc2md")
 
-from core.converter import ALLOWED_EXTENSIONS, convert_file_to_markdown
+from core.converter import (
+    ALLOWED_EXTENSIONS,
+    convert_file_to_markdown,
+    convert_file_to_markdown_with_assets,
+)
 from core.chunker import count_tokens, chunk_by_tokens
 from core.docx_generator import markdown_to_docx_bytes
 from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
@@ -79,7 +83,7 @@ async def convert_endpoint(
                 temp_path = temp_file.name
 
             raw_size = os.path.getsize(temp_path)
-            markdown_content = convert_file_to_markdown(temp_path, file.filename)
+            markdown_content, extracted_images = convert_file_to_markdown_with_assets(temp_path, file.filename)
             tokens = count_tokens(markdown_content)
 
             chunks = []
@@ -93,7 +97,9 @@ async def convert_endpoint(
                 "char_count": len(markdown_content),
                 "token_count": tokens,
                 "raw_size_kb": round(raw_size / 1024, 1),
-                "chunks": chunks
+                "chunks": chunks,
+                "images_count": len(extracted_images),
+                "images": [img.to_dict() for img in extracted_images]
             })
         except Exception as exc:
             logger.error(f"Gagal mengonversi file {file.filename}: {exc}", exc_info=True)

@@ -43,8 +43,28 @@ def create_batch_zip(items: List[Dict[str, Any]], archive_title: str = "doc2md_b
                     chunk_path = f"{chunk_folder}/part_{c_idx:02d}.md"
                     zf.writestr(chunk_path, chunk_text)
 
+            # 3. Write extracted image assets if any
+            images = item.get("images", []) or []
+            img_count = 0
+            for img in images:
+                if hasattr(img, "rel_path") and hasattr(img, "data"):
+                    zf.writestr(img.rel_path, img.data)
+                    img_count += 1
+                elif isinstance(img, dict):
+                    img_path = img.get("path")
+                    if img_path:
+                        if "data" in img and isinstance(img["data"], (bytes, bytearray)):
+                            zf.writestr(img_path, img["data"])
+                            img_count += 1
+                        elif "base64" in img and img["base64"]:
+                            b64_str = img["base64"].split(",", 1)[-1]
+                            zf.writestr(img_path, base64.b64decode(b64_str))
+                            img_count += 1
+
+            img_summary = f"{img_count} aset (folder /assets)" if img_count > 0 else "0"
+
             summary_rows.append(
-                f"| {idx} | `{raw_filename}` | `{md_entry_name}` | {tokens:,} | {chars:,} | {chunk_info} |"
+                f"| {idx} | `{raw_filename}` | `{md_entry_name}` | {tokens:,} | {chars:,} | {img_summary} | {chunk_info} |"
             )
 
         # 3. Create a comprehensive SUMMARY.md manifest inside the ZIP
@@ -60,8 +80,8 @@ def create_batch_zip(items: List[Dict[str, Any]], archive_title: str = "doc2md_b
 
 ## 📑 Rincian Berkas dalam Arsip
 
-| No | File Asli | File Markdown Utama | Estimasi Token | Karakter | Status Pembagian (Chunking) |
-|---|---|---|---|---|---|
+| No | File Asli | File Markdown Utama | Estimasi Token | Karakter | Aset Gambar | Status Pembagian (Chunking) |
+|---|---|---|---|---|---|---|
 """ + "\n".join(summary_rows) + f"""
 
 ---
