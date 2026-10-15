@@ -50,6 +50,7 @@ from core.batch_exporter import create_batch_zip
 from core.themes import list_themes
 from core.ocr_engine import is_ocr_available
 from core.frontmatter_formatter import attach_frontmatter
+from core.folder_watcher import global_folder_watcher
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -161,6 +162,45 @@ async def format_frontmatter_endpoint(
         preset=preset
     )
     return {"markdown": formatted, "preset": preset}
+
+@app.get("/watcher/status")
+async def get_watcher_status_endpoint():
+    """Returns the live status, watched directory, and event history of the folder watcher."""
+    return global_folder_watcher.get_status()
+
+@app.post("/watcher/start")
+async def start_watcher_endpoint(
+    input_dir: str = Form("watch_input"),
+    output_dir: str = Form("watch_output"),
+    frontmatter_preset: str = Form("obsidian"),
+    chunk_tokens: int = Form(0)
+):
+    """Starts the background folder watcher."""
+    in_path = os.path.abspath(input_dir if os.path.isabs(input_dir) else str(BASE_DIR / input_dir))
+    out_path = os.path.abspath(output_dir if os.path.isabs(output_dir) else str(BASE_DIR / output_dir))
+    res = global_folder_watcher.start(
+        input_dir=in_path,
+        output_dir=out_path,
+        frontmatter_preset=frontmatter_preset,
+        chunk_tokens=chunk_tokens
+    )
+    return res
+
+@app.post("/watcher/stop")
+async def stop_watcher_endpoint():
+    """Stops the active folder watcher."""
+    return global_folder_watcher.stop()
+
+@app.get("/watcher/history")
+async def get_watcher_history_endpoint():
+    """Returns the list of recently processed file events."""
+    return {"history": global_folder_watcher.recent_events}
+
+@app.post("/watcher/clear-history")
+async def clear_watcher_history_endpoint():
+    """Clears the watcher event history."""
+    global_folder_watcher.clear_history()
+    return {"status": "cleared"}
 
 @app.post("/md-to-docx")
 async def md_to_docx_endpoint(

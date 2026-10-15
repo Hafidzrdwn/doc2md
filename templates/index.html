@@ -87,11 +87,21 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Markdown ➔ Dokumen Word (.docx) & PDF
                 </button>
+                <button id="tabModeWatcher" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span>Auto-Watcher</span>
+                    <span id="watcherHeaderDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                </button>
             </div>
         </div>
 
         <!-- Global Action Controls -->
         <div class="flex items-center gap-3">
+            <div id="watcherGlobalPill" class="hidden sm:flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80 text-xs">
+                <span id="watcherGlobalDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                <span id="watcherGlobalText" class="text-slate-400 font-mono text-[11px]">Watcher: OFF</span>
+            </div>
+
             <div id="statsSummary" class="text-xs text-slate-400 hidden sm:flex items-center gap-4 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
                 <div>File: <span id="statFiles" class="font-mono text-slate-200 font-bold">0</span></div>
                 <div class="w-1 h-3 bg-slate-800 rounded"></div>
@@ -460,13 +470,167 @@
             </div>
         </section>
 
+        <!-- =================================================================== -->
+        <!-- VIEW 3: FOLDER AUTO-WATCHER -->
+        <!-- =================================================================== -->
+        <section id="viewWatcher" class="hidden flex flex-col gap-5">
+            <!-- Top Config & Control Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Status & Primary Controls (2 cols) -->
+                <div class="md:col-span-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between gap-5 shadow-xl">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shadow-inner">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                                    <span>Folder Auto-Watcher</span>
+                                    <span id="watcherStatusPill" class="text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono">NONAKTIF</span>
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-0.5">Otomatis deteksi dan konversi dokumen yang dimasukkan ke folder input secara hands-free</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2">
+                            <button id="btnStartWatcher" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Aktifkan Watcher</span>
+                            </button>
+                            <button id="btnStopWatcher" disabled class="px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+                                <span>Hentikan</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Path Configurations -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800/80 text-xs">
+                        <div class="space-y-1.5">
+                            <label class="font-semibold text-slate-300 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                                    Folder Input (Pantau Dokumen):
+                                </span>
+                                <button id="btnResetInputPath" class="text-[10px] text-sky-400 hover:underline">Default</button>
+                            </label>
+                            <input type="text" id="watcherInputPath" value="watch_input" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500 transition" placeholder="Folder input relatif atau absolut..." />
+                            <p class="text-[10px] text-slate-400">Letakkan file PDF, DOCX, XLSX, PPTX, atau Gambar ke folder ini</p>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="font-semibold text-slate-300 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    Folder Output (.md & assets/):
+                                </span>
+                                <button id="btnResetOutputPath" class="text-[10px] text-emerald-400 hover:underline">Default</button>
+                            </label>
+                            <input type="text" id="watcherOutputPath" value="watch_output" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-emerald-500 transition" placeholder="Folder output relatif atau absolut..." />
+                            <p class="text-[10px] text-slate-400">File Markdown dan subfolder `assets/` gambar akan disimpan di sini</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parameters Box (1 col) -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between text-xs space-y-4 shadow-xl">
+                    <div class="space-y-3.5">
+                        <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                            Opsi Otomasi
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] text-slate-300 block mb-1">Format Frontmatter YAML:</label>
+                            <select id="watcherFrontmatterSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2 text-slate-200 text-xs focus:outline-none focus:border-purple-500 transition">
+                                <option value="obsidian">Obsidian (Tags & Aliases)</option>
+                                <option value="notion">Notion (Title, Date, Status)</option>
+                                <option value="minimal">Minimal (Title, Source, Date)</option>
+                                <option value="none">Tanpa Header Frontmatter</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] text-slate-300 block mb-1">Auto-Split (Chunking):</label>
+                            <select id="watcherChunkSelect" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-2 text-slate-200 text-xs focus:outline-none focus:border-sky-500 transition">
+                                <option value="0">Dokumen Utuh (No Split)</option>
+                                <option value="8000">Split tiap ~8,000 token</option>
+                                <option value="16000">Split tiap ~16,000 token</option>
+                                <option value="32000">Split tiap ~32,000 token</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Total Dokumen Diproses:</span>
+                        <span id="watcherTotalProcessedBadge" class="text-emerald-400 font-mono font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity & History Table -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col gap-3 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xs font-bold text-slate-300 tracking-wider uppercase flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                            <span>Riwayat Aktivitas Auto-Convert</span>
+                        </h3>
+                        <span id="watcherHistoryCount" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700 font-mono">0</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btnRefreshWatcherHistory" class="px-2.5 py-1 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>Refresh</span>
+                        </button>
+                        <button id="btnClearWatcherHistory" class="px-2.5 py-1 rounded-lg text-xs bg-slate-800 hover:bg-rose-950/60 hover:text-rose-300 hover:border-rose-800/60 text-slate-400 border border-slate-700 transition">
+                            <span>Bersihkan Log</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feed Table / Empty State -->
+                <div id="watcherFeedContainer" class="min-h-[220px] max-h-[460px] overflow-y-auto rounded-xl border border-slate-800/80 bg-slate-950/60">
+                    <div id="watcherEmptyState" class="flex flex-col items-center justify-center p-10 text-center gap-2 text-slate-500">
+                        <svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p class="text-xs font-semibold text-slate-400">Belum ada file yang terdeteksi</p>
+                        <p class="text-[11px] text-slate-500 max-w-sm">Aktifkan watcher dan taruh file dokumen (PDF, Word, Excel, Gambar) ke folder input untuk melihat proses konversi otomatis di sini.</p>
+                    </div>
+                    <div id="watcherFeedList" class="hidden divide-y divide-slate-800/60"></div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <script>
         const tabModeDoc2Md = document.getElementById('tabModeDoc2Md');
         const tabModeMd2Doc = document.getElementById('tabModeMd2Doc');
+        const tabModeWatcher = document.getElementById('tabModeWatcher');
         const viewDoc2Md = document.getElementById('viewDoc2Md');
         const viewMd2Doc = document.getElementById('viewMd2Doc');
+        const viewWatcher = document.getElementById('viewWatcher');
+        const watcherHeaderDot = document.getElementById('watcherHeaderDot');
+        const watcherGlobalPill = document.getElementById('watcherGlobalPill');
+        const watcherGlobalDot = document.getElementById('watcherGlobalDot');
+        const watcherGlobalText = document.getElementById('watcherGlobalText');
+        const watcherStatusPill = document.getElementById('watcherStatusPill');
+        const btnStartWatcher = document.getElementById('btnStartWatcher');
+        const btnStopWatcher = document.getElementById('btnStopWatcher');
+        const watcherInputPath = document.getElementById('watcherInputPath');
+        const watcherOutputPath = document.getElementById('watcherOutputPath');
+        const btnResetInputPath = document.getElementById('btnResetInputPath');
+        const btnResetOutputPath = document.getElementById('btnResetOutputPath');
+        const watcherFrontmatterSelect = document.getElementById('watcherFrontmatterSelect');
+        const watcherChunkSelect = document.getElementById('watcherChunkSelect');
+        const watcherTotalProcessedBadge = document.getElementById('watcherTotalProcessedBadge');
+        const watcherHistoryCount = document.getElementById('watcherHistoryCount');
+        const btnRefreshWatcherHistory = document.getElementById('btnRefreshWatcherHistory');
+        const btnClearWatcherHistory = document.getElementById('btnClearWatcherHistory');
+        const watcherEmptyState = document.getElementById('watcherEmptyState');
+        const watcherFeedList = document.getElementById('watcherFeedList');
         const globalResetBtn = document.getElementById('globalResetBtn');
 
         const dropzone = document.getElementById('dropzone');
@@ -561,18 +725,27 @@
 
         tabModeDoc2Md.addEventListener('click', () => switchMode('doc2md'));
         tabModeMd2Doc.addEventListener('click', () => switchMode('md2doc'));
+        tabModeWatcher.addEventListener('click', () => switchMode('watcher'));
 
         function switchMode(mode) {
+            viewDoc2Md.classList.add('hidden');
+            viewMd2Doc.classList.add('hidden');
+            viewWatcher.classList.add('hidden');
+
+            tabModeDoc2Md.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+            tabModeMd2Doc.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+            tabModeWatcher.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+
             if (mode === 'doc2md') {
                 viewDoc2Md.classList.remove('hidden');
-                viewMd2Doc.classList.add('hidden');
                 tabModeDoc2Md.className = "px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
-                tabModeMd2Doc.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
-            } else {
-                viewDoc2Md.classList.add('hidden');
+            } else if (mode === 'md2doc') {
                 viewMd2Doc.classList.remove('hidden');
                 tabModeMd2Doc.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
-                tabModeDoc2Md.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5";
+            } else if (mode === 'watcher') {
+                viewWatcher.classList.remove('hidden');
+                tabModeWatcher.className = "px-3.5 py-1.5 rounded-lg bg-purple-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
+                fetchWatcherStatus();
             }
         }
 
@@ -1354,6 +1527,154 @@ Di mana $L_i$ adalah panjang maksimum string pada kolom ke-$i$, dan nilai komput
 `;
             updateMdStats();
         });
+
+        // ===================================================================
+        // FOLDER AUTO-WATCHER LOGIC
+        // ===================================================================
+        async function fetchWatcherStatus() {
+            try {
+                const res = await fetch('/watcher/status');
+                if (!res.ok) return;
+                const data = await res.json();
+                updateWatcherUI(data);
+            } catch (e) {
+                console.warn('Watcher status fetch error:', e);
+            }
+        }
+
+        function updateWatcherUI(data) {
+            const isActive = data.is_active;
+
+            if (isActive) {
+                watcherStatusPill.textContent = 'AKTIF (MEMANTAU)';
+                watcherStatusPill.className = 'text-[10px] font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-700/80 px-2 py-0.5 rounded-full font-mono flex items-center gap-1';
+                watcherHeaderDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                watcherGlobalDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                watcherGlobalText.textContent = 'Watcher: LIVE';
+                watcherGlobalText.className = 'text-emerald-400 font-mono text-[11px] font-semibold';
+                btnStartWatcher.disabled = true;
+                btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed';
+                btnStopWatcher.disabled = false;
+                btnStopWatcher.className = 'px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-rose-600/20';
+            } else {
+                watcherStatusPill.textContent = 'NONAKTIF';
+                watcherStatusPill.className = 'text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono';
+                watcherHeaderDot.className = 'w-2 h-2 rounded-full bg-slate-600';
+                watcherGlobalDot.className = 'w-2 h-2 rounded-full bg-slate-600';
+                watcherGlobalText.textContent = 'Watcher: OFF';
+                watcherGlobalText.className = 'text-slate-400 font-mono text-[11px]';
+                btnStartWatcher.disabled = false;
+                btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20';
+                btnStopWatcher.disabled = true;
+                btnStopWatcher.className = 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed';
+            }
+
+            if (data.input_dir && !isActive) watcherInputPath.value = data.input_dir;
+            if (data.output_dir && !isActive) watcherOutputPath.value = data.output_dir;
+
+            watcherTotalProcessedBadge.textContent = (data.total_processed || 0).toLocaleString();
+            watcherHistoryCount.textContent = (data.recent_events || []).length;
+
+            renderWatcherEvents(data.recent_events || []);
+        }
+
+        function renderWatcherEvents(events) {
+            if (!events || events.length === 0) {
+                watcherEmptyState.classList.remove('hidden');
+                watcherFeedList.classList.add('hidden');
+                watcherFeedList.innerHTML = '';
+                return;
+            }
+
+            watcherEmptyState.classList.add('hidden');
+            watcherFeedList.classList.remove('hidden');
+            watcherFeedList.innerHTML = '';
+
+            events.forEach(ev => {
+                const item = document.createElement('div');
+                item.className = 'p-3.5 hover:bg-slate-900/60 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs';
+                const isSuccess = ev.status === 'success';
+                const ext = (ev.filename.split('.').pop() || '').toUpperCase();
+
+                item.innerHTML = `
+                    <div class="flex items-start gap-2.5 overflow-hidden">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono">${ext}</span>
+                        <div class="overflow-hidden">
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-slate-200 truncate" title="${ev.filename}">${ev.filename}</span>
+                                ${isSuccess 
+                                    ? `<span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 font-medium">Auto-Converted</span>`
+                                    : `<span class="text-[10px] px-1.5 py-0.2 rounded bg-rose-950/80 text-rose-400 border border-rose-800/60 font-medium" title="${ev.error || ''}">Gagal</span>`
+                                }
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
+                                <span>${ev.timestamp}</span>
+                                <span>•</span>
+                                <span class="text-slate-500 truncate" title="${ev.output_path || ''}">${ev.output_path ? ev.output_path.split(/[\\\\/]/).pop() : 'No output'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 self-end sm:self-center shrink-0 font-mono text-[11px]">
+                        ${(ev.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-2 py-0.5 rounded text-[10px] font-sans">🖼️ ${ev.images_count} aset</span>` : ''}
+                        ${(ev.chunks_count > 0) ? `<span class="bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2 py-0.5 rounded text-[10px] font-sans">✂️ ${ev.chunks_count} parts</span>` : ''}
+                        <span class="text-emerald-400 font-bold bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">${(ev.token_count || 0).toLocaleString()} tokens</span>
+                    </div>
+                `;
+                watcherFeedList.appendChild(item);
+            });
+        }
+
+        btnStartWatcher.addEventListener('click', async () => {
+            const inPath = watcherInputPath.value.trim() || 'watch_input';
+            const outPath = watcherOutputPath.value.trim() || 'watch_output';
+            const fmPreset = watcherFrontmatterSelect.value;
+            const chunkTokens = watcherChunkSelect.value;
+
+            btnStartWatcher.disabled = true;
+            btnStartWatcher.innerHTML = `<span>Memulai...</span>`;
+
+            try {
+                const fd = new FormData();
+                fd.append('input_dir', inPath);
+                fd.append('output_dir', outPath);
+                fd.append('frontmatter_preset', fmPreset);
+                fd.append('chunk_tokens', chunkTokens);
+
+                const res = await fetch('/watcher/start', { method: 'POST', body: fd });
+                if (!res.ok) throw new Error(await res.text());
+                await res.json();
+                fetchWatcherStatus();
+            } catch (err) {
+                alert('Gagal memulai Folder Watcher: ' + err.message);
+                fetchWatcherStatus();
+            }
+        });
+
+        btnStopWatcher.addEventListener('click', async () => {
+            btnStopWatcher.disabled = true;
+            btnStopWatcher.innerHTML = `<span>Menghentikan...</span>`;
+            try {
+                const res = await fetch('/watcher/stop', { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                fetchWatcherStatus();
+            } catch (err) {
+                alert('Gagal menghentikan Folder Watcher: ' + err.message);
+                fetchWatcherStatus();
+            }
+        });
+
+        btnResetInputPath.addEventListener('click', () => { watcherInputPath.value = 'watch_input'; });
+        btnResetOutputPath.addEventListener('click', () => { watcherOutputPath.value = 'watch_output'; });
+        btnRefreshWatcherHistory.addEventListener('click', fetchWatcherStatus);
+        btnClearWatcherHistory.addEventListener('click', async () => {
+            if (confirm('Bersihkan seluruh log riwayat aktivitas watcher?')) {
+                await fetch('/watcher/clear-history', { method: 'POST' });
+                fetchWatcherStatus();
+            }
+        });
+
+        setInterval(fetchWatcherStatus, 3000);
+        fetchWatcherStatus();
     </script>
 </body>
 </html>

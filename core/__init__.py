@@ -44,6 +44,11 @@ from .frontmatter_formatter import (
     has_frontmatter,
     SUPPORTED_PRESETS,
 )
+from .folder_watcher import (
+    FolderWatcher,
+    global_folder_watcher,
+    wait_until_file_ready,
+)
 
 __all__ = [
     "count_tokens",
@@ -80,6 +85,9 @@ __all__ = [
     "strip_frontmatter",
     "has_frontmatter",
     "SUPPORTED_PRESETS",
+    "FolderWatcher",
+    "global_folder_watcher",
+    "wait_until_file_ready",
 ]
 
 

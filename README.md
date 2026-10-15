@@ -76,7 +76,14 @@
 - **Integrasi Dua Arah & Pembersihan Otomatis**: Dilengkapi fungsi `strip_frontmatter` untuk mencegah duplikasi tag header saat beralih preset atau mengonversi kembali ke DOCX/PDF.
 - **Kontrol Fleksibel**: Dapat dipilih langsung sebelum upload dokumen pada View 1 atau diterapkan secara interaktif pada naskah aktif di toolbar Markdown Studio (View 1 & View 2) lewat tombol `+ YAML`.
 
-### 12. 💻 Desktop Native & Offline
+### 12. 📁 Folder Watcher / Auto-Convert Dropped Files
+- **Pemantau Latar Belakang Hands-Free**: Memanfaatkan library `watchdog` untuk memantau folder input (default: `watch_input/` atau path kustom) dan mendeteksi dokumen baru yang diletakkan secara instan.
+- **Deteksi Kestabilan File (Anti-Lock & Debounce)**: Memastikan file yang sedang disalin telah selesai ditulis 100% oleh sistem operasi sebelum proses konversi dimulai untuk mencegah kesalahan *file lock*.
+- **Otomasi Pipeline Penuh**: Mengekstrak teks, tabel, gambar biner (ke subfolder `<output_dir>/assets/`), menyematkan header Frontmatter YAML pilihan, dan menyimpan Markdown bersih langsung ke `<output_dir>/`.
+- **Feed Riwayat Real-Time**: Antarmuka studio menyediakan dashboard pemantau live dengan indikator status aktif/nonaktif, log konversi per dokumen, dan metrik token.
+- **REST API Kontrol**: Dilengkapi endpoint `GET /watcher/status`, `POST /watcher/start`, `POST /watcher/stop`, `GET /watcher/history`, dan `POST /watcher/clear-history`.
+
+### 13. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -91,6 +98,7 @@ doc-to-markdown/
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion & text sanitization
 │   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   ├── folder_watcher.py       # Background folder watcher & auto-convert engine
 │   ├── frontmatter_formatter.py# Obsidian / Notion YAML frontmatter engine
 │   ├── image_extractor.py      # Real image asset extractor for PDF & Office formats
 │   ├── ocr_engine.py           # Offline OCR engine (RapidOCR / ONNX)
@@ -105,6 +113,7 @@ doc-to-markdown/
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
 │   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
+│   ├── test_folder_watcher.py  # Unit tests untuk folder watcher & auto-convert
 │   ├── test_frontmatter.py     # Unit tests untuk format YAML frontmatter & API
 │   ├── test_image_extractor.py # Unit tests untuk ekstraksi aset gambar nyata
 │   ├── test_ocr.py             # Unit tests untuk offline OCR gambar & PDF scan
