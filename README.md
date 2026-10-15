@@ -33,8 +33,14 @@
 - **Penomoran Soal Bebas-Bug**: Format *hanging indent* mandiri yang mencegah penomoran daftar berurutan meloncat atau menyatu dengan tabel sebelumnya.
 - **Tabel Multi-Halaman Rapi**: Mendukung `tblHeader` (judul tabel otomatis berulang di halaman baru) dan `cantSplit` (mencegah baris terbelah canggung di pergantian halaman).
 
-### 6. 💻 Desktop Native & Offline
-- Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome.
+### 6. 🖨️ Precision PDF & Standalone HTML Paged Media Engine
+- **Cegah Terpotong (Anti-Cutoff & Smart Page Breaks)**: Didesain dengan aturan CSS Paged Media (`break-inside: avoid` pada tabel, blockquote, callout, dan code block; `break-after: avoid` pada heading H1-H6) agar struktur dokumen tidak pernah terbelah janggal di batas halaman.
+- **Header Tabel Berulang**: Judul tabel otomatis berulang di setiap halaman cetak baru (`thead { display: table-header-group; }`).
+- **Sintaks Highlighting Elegan**: Blok kode diformat dengan pewarnaan sintaks Pygments profesional.
+- **Format Siap Cetak (A4 Standard)**: Dilengkapi nomor halaman otomatis (*Halaman X dari Y*) dan tombol cetak instan.
+
+### 7. 💻 Desktop Native & Offline
+- Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
 
@@ -46,7 +52,8 @@ doc-to-markdown/
 │   ├── __init__.py             # Public API export
 │   ├── chunker.py              # Tokenisasi tiktoken & text chunking
 │   ├── converter.py            # MarkItDown conversion, image annotator, sanitization
-│   └── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   ├── docx_generator.py       # Markdown-to-DOCX engine & table styling
+│   └── pdf_generator.py        # Markdown-to-PDF & standalone HTML engine
 ├── templates/                  # Frontend UI templates
 │   └── index.html              # Modern responsive web & desktop interface
 ├── tests/                      # Automated test suite
@@ -54,7 +61,8 @@ doc-to-markdown/
 │   ├── test_api.py             # FastAPI endpoint integration tests
 │   ├── test_chunker.py         # Unit tests untuk token count & chunking
 │   ├── test_converter.py       # Unit tests untuk sanitasi & deteksi ekstensi
-│   └── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
+│   ├── test_docx_generator.py  # Unit tests untuk Word layout, tabel & lists
+│   └── test_pdf_generator.py   # Unit tests untuk PDF & HTML layout generation
 ├── app.py                      # Application entrypoint & Desktop GUI runner
 ├── app.spec                    # PyInstaller standalone build configuration
 ├── md2docx.py                  # Backward-compatible proxy module

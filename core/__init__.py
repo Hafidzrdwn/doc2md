@@ -11,6 +11,11 @@ from .converter import (
     convert_file_to_markdown,
 )
 from .docx_generator import markdown_to_docx_bytes, clean_table_cell_text, clean_html_formatting
+from .pdf_generator import (
+    markdown_to_pdf_bytes,
+    markdown_to_html_document,
+    find_chromium_executable,
+)
 
 __all__ = [
     "count_tokens",
@@ -24,4 +29,7 @@ __all__ = [
     "markdown_to_docx_bytes",
     "clean_table_cell_text",
     "clean_html_formatting",
+    "markdown_to_pdf_bytes",
+    "markdown_to_html_document",
+    "find_chromium_executable",
 ]

@@ -48,3 +48,34 @@ def test_md_to_docx_endpoint():
     assert response.headers["content-type"] == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     assert "attachment; filename=\"hasil_uji.docx\"" in response.headers["content-disposition"]
     assert len(response.content) > 0
+
+def test_md_to_pdf_endpoint():
+    markdown_sample = "# Header PDF Pengujian\n\nTeks konten pengujian konversi PDF."
+    response = client.post(
+        "/md-to-pdf",
+        data={"markdown_text": markdown_sample, "filename": "hasil_uji_pdf"}
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert "attachment; filename=\"hasil_uji_pdf.pdf\"" in response.headers["content-disposition"]
+    assert response.content.startswith(b"%PDF")
+
+def test_md_to_html_endpoint():
+    markdown_sample = "# Header HTML Pengujian\n\nTeks konten pengujian konversi HTML."
+    # 1. Preview mode
+    response = client.post(
+        "/md-to-html",
+        data={"markdown_text": markdown_sample, "filename": "hasil_uji_html", "download": False}
+    )
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "<!DOCTYPE html>" in response.text
+    assert "Header HTML Pengujian" in response.text
+
+    # 2. Download mode
+    response_dl = client.post(
+        "/md-to-html",
+        data={"markdown_text": markdown_sample, "filename": "hasil_uji_html", "download": True}
+    )
+    assert response_dl.status_code == 200
+    assert "attachment; filename=\"hasil_uji_html.html\"" in response_dl.headers["content-disposition"]

@@ -40,6 +40,7 @@ logger = logging.getLogger("doc2md")
 from core.converter import ALLOWED_EXTENSIONS, convert_file_to_markdown
 from core.chunker import count_tokens, chunk_by_tokens
 from core.docx_generator import markdown_to_docx_bytes
+from core.pdf_generator import markdown_to_pdf_bytes, markdown_to_html_document
 
 TEMPLATES_DIR = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -143,6 +144,82 @@ async def md_to_docx_endpoint(
     except Exception as exc:
         logger.error(f"Gagal membuat file DOCX: {exc}", exc_info=True)
         return Response(content=f"Terjadi kesalahan saat membuat DOCX: {str(exc)}", status_code=500)
+
+@app.post("/md-to-pdf")
+async def md_to_pdf_endpoint(
+    file: UploadFile = File(None),
+    markdown_text: str = Form(None),
+    filename: str = Form("dokumen")
+):
+    """Converts Markdown text or an uploaded .md file into a professional PDF with CSS Paged Media."""
+    try:
+        content = ""
+        target_name = (filename or "dokumen").strip()
+
+        if file and file.filename:
+            raw_bytes = await file.read()
+            content = raw_bytes.decode("utf-8", errors="replace")
+            if not filename or filename == "dokumen":
+                target_name = os.path.splitext(file.filename)[0]
+        elif markdown_text:
+            content = markdown_text
+
+        if not content.strip():
+            return Response(content="Konten Markdown kosong atau tidak valid.", status_code=400)
+
+        pdf_bytes = markdown_to_pdf_bytes(content, title=target_name)
+        clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', target_name) or "dokumen"
+        if not clean_name.lower().endswith(".pdf"):
+            clean_name += ".pdf"
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{clean_name}"'}
+        )
+    except Exception as exc:
+        logger.error(f"Gagal membuat file PDF: {exc}", exc_info=True)
+        return Response(content=f"Terjadi kesalahan saat membuat PDF: {str(exc)}", status_code=500)
+
+@app.post("/md-to-html")
+async def md_to_html_endpoint(
+    file: UploadFile = File(None),
+    markdown_text: str = Form(None),
+    filename: str = Form("dokumen"),
+    download: bool = Form(False)
+):
+    """Renders Markdown as a standalone styled HTML print-ready document."""
+    try:
+        content = ""
+        target_name = (filename or "dokumen").strip()
+
+        if file and file.filename:
+            raw_bytes = await file.read()
+            content = raw_bytes.decode("utf-8", errors="replace")
+            if not filename or filename == "dokumen":
+                target_name = os.path.splitext(file.filename)[0]
+        elif markdown_text:
+            content = markdown_text
+
+        if not content.strip():
+            return Response(content="Konten Markdown kosong atau tidak valid.", status_code=400)
+
+        html_doc = markdown_to_html_document(content, title=target_name)
+        clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', target_name) or "dokumen"
+        if not clean_name.lower().endswith(".html"):
+            clean_name += ".html"
+
+        if download:
+            return Response(
+                content=html_doc.encode("utf-8"),
+                media_type="text/html",
+                headers={"Content-Disposition": f'attachment; filename="{clean_name}"'}
+            )
+        else:
+            return HTMLResponse(content=html_doc)
+    except Exception as exc:
+        logger.error(f"Gagal membuat file HTML: {exc}", exc_info=True)
+        return Response(content=f"Terjadi kesalahan saat membuat HTML: {str(exc)}", status_code=500)
 
 def run_uvicorn_server(**kwargs):
     """Runs the internal ASGI server for Desktop UI."""
