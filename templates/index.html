@@ -8,6 +8,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Marked.js for Fast Client-Side Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- KaTeX for High-Performance Math Formula Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Mermaid.js for Technical Diagrams & Flowcharts -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        if (window.mermaid) {
+            mermaid.initialize({ startOnLoad: false, theme: 'dark', themeVariables: { darkMode: true, background: '#0b0f19', primaryColor: '#0284c7', primaryTextColor: '#f8fafc', lineColor: '#38bdf8' } });
+        }
+    </script>
+
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         code, pre, textarea.font-mono, .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -21,6 +38,24 @@
             50% { opacity: 0.85; transform: scale(0.995); }
         }
         .animate-subtle { animation: pulse-subtle 2s infinite ease-in-out; }
+
+        /* Live Markdown Preview Styles */
+        .markdown-preview h1 { font-size: 1.35rem; font-weight: 700; color: #38bdf8; border-bottom: 1px solid #1e293b; padding-bottom: 0.35rem; margin-top: 1.2rem; margin-bottom: 0.5rem; }
+        .markdown-preview h2 { font-size: 1.15rem; font-weight: 600; color: #f1f5f9; border-bottom: 1px solid #334155; padding-bottom: 0.25rem; margin-top: 1rem; margin-bottom: 0.4rem; }
+        .markdown-preview h3 { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-top: 0.8rem; margin-bottom: 0.3rem; }
+        .markdown-preview p { margin-bottom: 0.65rem; line-height: 1.6; color: #cbd5e1; }
+        .markdown-preview ul, .markdown-preview ol { padding-left: 1.3rem; margin-bottom: 0.65rem; color: #cbd5e1; }
+        .markdown-preview li { margin-bottom: 0.2rem; }
+        .markdown-preview table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.75rem; }
+        .markdown-preview th { background: #0f172a; border: 1px solid #334155; padding: 6px 10px; color: #38bdf8; text-align: left; font-weight: 600; }
+        .markdown-preview td { border: 1px solid #1e293b; padding: 6px 10px; color: #94a3b8; }
+        .markdown-preview tr:nth-child(even) { background: rgba(15, 23, 42, 0.4); }
+        .markdown-preview blockquote { border-left: 3px solid #0284c7; background: rgba(2, 132, 199, 0.08); padding: 8px 12px; margin: 0.8rem 0; border-radius: 0 6px 6px 0; color: #94a3b8; }
+        .markdown-preview code:not(pre code) { background: #1e293b; color: #38bdf8; padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+        .markdown-preview pre { background: #030712; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 12px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.8rem; }
+        .markdown-preview hr { border: 0; border-top: 1px solid #1e293b; margin: 1.2rem 0; }
+        .markdown-preview img { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; border: 1px solid #334155; }
+        .markdown-preview .mermaid { display: flex; justify-content: center; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; border: 1px solid #1e293b; margin: 1rem 0; overflow-x: auto; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
@@ -259,11 +294,10 @@
                         </div>
 
                         <!-- Preset Markdown Samples -->
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Muat Contoh Markdown:</label>
-                            <div class="flex gap-2">
+                            <div class="flex flex-wrap gap-2">
                                 <button id="loadSampleReportBtn" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">Laporan & Tabel</button>
-                                <button id="loadSampleProposalBtn" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">Proposal Singkat</button>
+                                <button id="loadSampleProposalBtn" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">Proposal</button>
+                                <button id="loadSampleMathDiagramBtn" class="flex-1 py-1.5 px-2 bg-indigo-950/70 hover:bg-indigo-900/90 text-indigo-300 rounded-lg text-xs transition border border-indigo-800/60 font-medium">Rumus & Diagram</button>
                             </div>
                         </div>
 
@@ -301,12 +335,25 @@
                     </div>
                 </div>
 
-                <div class="md:col-span-2 flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[500px]">
+                <div class="md:col-span-2 flex flex-col bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[520px]">
+                    <!-- Editor & Preview Controls Header -->
                     <div class="px-4 py-2.5 bg-slate-950/90 border-b border-slate-800 flex justify-between items-center text-xs flex-wrap gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="font-semibold text-slate-200">Editor Teks Markdown</span>
-                            <span class="text-[10px] text-slate-500">• Ketik atau tempel markdown</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-semibold text-slate-200">Editor Markdown</span>
+                            <!-- View Mode Toggles -->
+                            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-[11px]">
+                                <button id="btnViewSplit" class="px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm" title="Mode Split Berdampingan">
+                                    <span>🌓 Split</span>
+                                </button>
+                                <button id="btnViewEdit" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1" title="Mode Hanya Editor">
+                                    <span>📝 Edit</span>
+                                </button>
+                                <button id="btnViewPreview" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1" title="Mode Hanya Preview Visual">
+                                    <span>👁️ Preview</span>
+                                </button>
+                            </div>
                         </div>
+
                         <div class="flex items-center gap-2">
                             <button id="quickPdfBtn" class="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/60 rounded-lg text-[11px] font-semibold transition flex items-center gap-1">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
@@ -328,7 +375,28 @@
                             </div>
                         </div>
                     </div>
-                    <textarea id="mdInputArea" class="w-full flex-1 bg-transparent p-5 text-xs font-mono text-slate-300 resize-none focus:outline-none select-text leading-relaxed min-h-[460px]" placeholder="# Masukkan Judul Dokumen Anda&#10;&#10;Ketik atau tempel teks Markdown di sini..." spellcheck="false"></textarea>
+
+                    <!-- Split-Pane Workspace -->
+                    <div id="editorDualContainer" class="flex-1 flex flex-col md:flex-row overflow-hidden divide-y md:divide-y-0 md:divide-x divide-slate-800 min-h-[480px]">
+                        <!-- Left Pane: Raw Markdown Editor -->
+                        <div id="editorLeftPane" class="flex-1 flex flex-col min-w-0 bg-transparent">
+                            <textarea id="mdInputArea" class="w-full flex-1 bg-transparent p-4 text-xs font-mono text-slate-300 resize-none focus:outline-none select-text leading-relaxed min-h-[460px]" placeholder="# Masukkan Judul Dokumen Anda&#10;&#10;Ketik atau tempel teks Markdown di sini..." spellcheck="false"></textarea>
+                        </div>
+
+                        <!-- Right Pane: Live Rendered Preview (Marked + KaTeX + Mermaid) -->
+                        <div id="editorRightPane" class="flex-1 flex flex-col min-w-0 bg-slate-950/40 overflow-hidden">
+                            <div class="px-4 py-2 bg-slate-950/80 border-b border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                                <span class="flex items-center gap-1.5 font-medium text-slate-300">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    Pratinjau Visual (Live KaTeX & Mermaid)
+                                </span>
+                                <span class="text-[10px] text-sky-400 bg-sky-950/60 border border-sky-800/60 px-2 py-0.5 rounded font-mono">Real-time</span>
+                            </div>
+                            <div id="mdLivePreview" class="flex-1 p-5 overflow-y-auto markdown-preview text-xs text-slate-200 leading-relaxed min-h-[440px]">
+                                <div class="text-slate-500 italic p-4 text-center">Pratinjau visual akan muncul otomatis di sini...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -391,8 +459,15 @@
         const quickPdfBtn = document.getElementById('quickPdfBtn');
         const quickDocxBtn = document.getElementById('quickDocxBtn');
         const quickHtmlBtn = document.getElementById('quickHtmlBtn');
+        const btnViewSplit = document.getElementById('btnViewSplit');
+        const btnViewEdit = document.getElementById('btnViewEdit');
+        const btnViewPreview = document.getElementById('btnViewPreview');
+        const editorLeftPane = document.getElementById('editorLeftPane');
+        const editorRightPane = document.getElementById('editorRightPane');
+        const mdLivePreview = document.getElementById('mdLivePreview');
         const loadSampleReportBtn = document.getElementById('loadSampleReportBtn');
         const loadSampleProposalBtn = document.getElementById('loadSampleProposalBtn');
+        const loadSampleMathDiagramBtn = document.getElementById('loadSampleMathDiagramBtn');
 
         let converted = [];
         let activeIdx = 0;
@@ -827,7 +902,100 @@
             const text = mdInputArea.value;
             mdCharCount.textContent = `${text.length.toLocaleString()} karakter`;
             mdLineCount.textContent = `${text ? text.split('\n').length : 0} baris`;
+            renderLivePreview();
         }
+
+        let previewDebounceTimer = null;
+        function renderLivePreview() {
+            clearTimeout(previewDebounceTimer);
+            previewDebounceTimer = setTimeout(() => {
+                if (!mdLivePreview) return;
+                const text = mdInputArea.value;
+                if (!text || !text.trim()) {
+                    mdLivePreview.innerHTML = '<div class="text-slate-500 italic p-6 text-center">Pratinjau visual akan muncul otomatis di sini...</div>';
+                    return;
+                }
+
+                // 1. Parse markdown with Marked
+                if (window.marked) {
+                    try {
+                        mdLivePreview.innerHTML = marked.parse(text);
+                    } catch (e) {
+                        mdLivePreview.innerHTML = `<div class="text-rose-400 p-2">Error parsing Markdown: ${e.message}</div>`;
+                        return;
+                    }
+                } else {
+                    mdLivePreview.textContent = text;
+                }
+
+                // 2. Render KaTeX Math Expressions ($inline$ and $$block$$)
+                if (window.renderMathInElement) {
+                    try {
+                        renderMathInElement(mdLivePreview, {
+                            delimiters: [
+                                { left: '$$', right: '$$', display: true },
+                                { left: '$', right: '$', display: false },
+                                { left: '\\(', right: '\\)', display: false },
+                                { left: '\\[', right: '\\]', display: true }
+                            ],
+                            throwOnError: false
+                        });
+                    } catch (mathErr) {
+                        console.warn('KaTeX render error:', mathErr);
+                    }
+                }
+
+                // 3. Render Mermaid Flowcharts and Technical Diagrams
+                if (window.mermaid) {
+                    try {
+                        const codeBlocks = mdLivePreview.querySelectorAll('code.language-mermaid, pre.mermaid');
+                        codeBlocks.forEach((block) => {
+                            const pre = (block.tagName === 'PRE') ? block : block.parentElement;
+                            const rawCode = block.textContent.trim();
+                            const container = document.createElement('div');
+                            container.className = 'mermaid';
+                            container.textContent = rawCode;
+                            pre.replaceWith(container);
+                        });
+
+                        const nodes = mdLivePreview.querySelectorAll('.mermaid');
+                        if (nodes.length > 0) {
+                            mermaid.run({ nodes: nodes });
+                        }
+                    } catch (mErr) {
+                        console.warn('Mermaid render error:', mErr);
+                    }
+                }
+            }, 120);
+        }
+
+        function setEditorViewMode(mode) {
+            if (mode === 'split') {
+                editorLeftPane.classList.remove('hidden');
+                editorRightPane.classList.remove('hidden');
+                btnViewSplit.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+                btnViewEdit.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+                btnViewPreview.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+                renderLivePreview();
+            } else if (mode === 'edit') {
+                editorLeftPane.classList.remove('hidden');
+                editorRightPane.classList.add('hidden');
+                btnViewSplit.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+                btnViewEdit.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+                btnViewPreview.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+            } else if (mode === 'preview') {
+                editorLeftPane.classList.add('hidden');
+                editorRightPane.classList.remove('hidden');
+                btnViewSplit.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+                btnViewEdit.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+                btnViewPreview.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+                renderLivePreview();
+            }
+        }
+
+        btnViewSplit.addEventListener('click', () => setEditorViewMode('split'));
+        btnViewEdit.addEventListener('click', () => setEditorViewMode('edit'));
+        btnViewPreview.addEventListener('click', () => setEditorViewMode('preview'));
 
         async function previewOrDownloadHtml(markdownContent, baseName, download = false) {
             if (!markdownContent || !markdownContent.trim()) {
@@ -995,6 +1163,42 @@ Pengguna membutuhkan solusi lokal untuk mengonversi dokumen PDF/Word/Excel ke Ma
 - **Fase 1**: Penataan antarmuka & tombol reset
 - **Fase 2**: Integrasi engine konversi dokumen & styling Word
 - **Fase 3**: Build PyInstaller standalone eksekutabel
+`;
+            updateMdStats();
+        });
+
+        loadSampleMathDiagramBtn.addEventListener('click', () => {
+            targetDocxName.value = 'Spesifikasi_Teknis_Diagram_dan_Formula';
+            mdInputArea.value = `# Spesifikasi Teknis Pipeline & Optimasi Model
+
+Berikut adalah pemetaan alur pemrosesan dokumen dan formula matematika tokenisasi.
+
+## 1. Diagram Alur Konversi Sistem (Mermaid Flowchart)
+
+\`\`\`mermaid
+graph TD
+    A[📄 Dokumen Asli: PDF / Office] --> B{Ekstraksi Aset Visual}
+    B -->|Gambar Ditemukan| C[🖼️ Simpan ke /assets & Auto-link]
+    B -->|Hanya Teks| D[🧹 Pembersihan BOM & Zero-Width]
+    C --> D
+    D --> E[🔢 Tiktoken Chunking cl100k_base]
+    E --> F[✨ Output Markdown Bersih & AI-Ready]
+    F --> G[📥 Batch Download ZIP / Word / PDF]
+\`\`\`
+
+---
+
+## 2. Model Matematika Token & Kompresi Dokumen (KaTeX)
+
+Efisiensi kompresi teks bebas *noise* dinyatakan dengan persamaan:
+
+$$ \\eta = \\left( 1 - \\frac{T_{clean}}{T_{raw}} \\right) \\times 100\\% $$
+
+Untuk distribusi bobot kolom tabel proporsional $W_i$:
+
+$$ W_i = \\frac{L_i^{\\alpha}}{\\sum_{k=1}^{n} L_k^{\\alpha}} \\times W_{total} $$
+
+Di mana $L_i$ adalah panjang maksimum string pada kolom ke-$i$, dan nilai komputasi kuantum $E = mc^2$ tetap konstan dengan batas $\\theta \\le 0.05$.
 `;
             updateMdStats();
         });

@@ -46,7 +46,13 @@
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
 
-### 8. 💻 Desktop Native & Offline
+### 8. 🌓 Live Split-Screen Markdown Editor + KaTeX & Mermaid
+- **Editor & Live Preview Interaktif**: Mode tampilan fleksibel (*Split*, *Edit Saja*, *Preview Saja*) dengan sinkronisasi karakter dan baris secara real-time.
+- **Formula Matematika KaTeX**: Mendukung render persamaan matematika baik *inline* (`$E = mc^2$`) maupun *block/display* (`$$\sum ...$$`).
+- **Diagram Alur Mermaid.js**: Merender diagram alur grafis (*flowchart*, *sequence*, dll.) dari blok ` ```mermaid ` langsung di layar.
+- **Preset Template Praktis**: Tersedia tombol preset dokumen cepat (Laporan Eksekutif, Proposal Fitur, dan Spesifikasi Teknis Diagram/Formula).
+
+### 9. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
