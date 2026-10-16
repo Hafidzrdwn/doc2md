@@ -20,6 +20,10 @@ function switchMode(mode) {
     if (tabWatcher) tabWatcher.className = inactiveClass;
     if (tabDiff) tabDiff.className = inactiveClass;
 
+    if (typeof window.setWatcherTabActive === 'function') {
+        window.setWatcherTabActive(mode === 'watcher');
+    }
+
     if (mode === 'doc2md') {
         if (viewDoc2Md) viewDoc2Md.classList.remove('hidden');
         if (tabDoc2Md) tabDoc2Md.className = "px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
@@ -29,7 +33,6 @@ function switchMode(mode) {
     } else if (mode === 'watcher') {
         if (viewWatcher) viewWatcher.classList.remove('hidden');
         if (tabWatcher) tabWatcher.className = "px-3.5 py-1.5 rounded-lg bg-purple-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";
-        if (typeof fetchWatcherStatus === 'function') fetchWatcherStatus();
     } else if (mode === 'diff') {
         if (viewDiff) viewDiff.classList.remove('hidden');
         if (tabDiff) tabDiff.className = "px-3.5 py-1.5 rounded-lg bg-teal-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm";

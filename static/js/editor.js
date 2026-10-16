@@ -52,59 +52,66 @@ function updateMdStats() {
 let previewDebounceTimer = null;
 function renderLivePreview() {
     clearTimeout(previewDebounceTimer);
+    const text = mdInputArea ? mdInputArea.value : '';
+    const delay = text.length > 30000 ? 250 : 120;
+
     previewDebounceTimer = setTimeout(() => {
         if (!mdLivePreview) return;
-        const text = mdInputArea.value;
         if (!text || !text.trim()) {
             mdLivePreview.innerHTML = '<div class="text-slate-500 italic p-6 text-center">Pratinjau visual akan muncul otomatis di sini...</div>';
             return;
         }
 
-        if (window.marked) {
-            try {
-                mdLivePreview.innerHTML = marked.parse(text);
-            } catch (e) {
-                mdLivePreview.innerHTML = `<div class="text-rose-400 p-2">Error parsing Markdown: ${e.message}</div>`;
-                return;
+        requestAnimationFrame(() => {
+            if (window.marked) {
+                try {
+                    mdLivePreview.innerHTML = marked.parse(text);
+                } catch (e) {
+                    mdLivePreview.innerHTML = `<div class="text-rose-400 p-2">Error parsing Markdown: ${e.message}</div>`;
+                    return;
+                }
+            } else {
+                mdLivePreview.textContent = text;
             }
-        } else {
-            mdLivePreview.textContent = text;
-        }
 
-        if (window.renderMathInElement) {
-            try {
-                renderMathInElement(mdLivePreview, {
-                    delimiters: [
-                        { left: '$$', right: '$$', display: true },
-                        { left: '$', right: '$', display: false },
-                        { left: '\\(', right: '\\)', display: false },
-                        { left: '\\[', right: '\\]', display: true }
-                    ],
-                    throwOnError: false
-                });
-            } catch (e) {
-                console.warn("KaTeX render error:", e);
+            const hasMath = text.includes('$') || text.includes('\\(') || text.includes('\\[');
+            if (hasMath && window.renderMathInElement) {
+                try {
+                    renderMathInElement(mdLivePreview, {
+                        delimiters: [
+                            { left: '$$', right: '$$', display: true },
+                            { left: '$', right: '$', display: false },
+                            { left: '\\(', right: '\\)', display: false },
+                            { left: '\\[', right: '\\]', display: true }
+                        ],
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    console.warn("KaTeX render error:", e);
+                }
             }
-        }
 
-        if (window.mermaid) {
-            try {
-                const codeBlocks = mdLivePreview.querySelectorAll('pre code.language-mermaid, pre code.lang-mermaid');
-                codeBlocks.forEach((codeBlock, idx) => {
-                    const pre = codeBlock.parentElement;
-                    const mermaidCode = codeBlock.textContent.trim();
-                    const container = document.createElement('div');
-                    container.className = 'mermaid my-4 flex justify-center bg-slate-900/40 p-4 rounded-xl border border-slate-800 overflow-x-auto';
-                    container.id = `mermaid-render-${Date.now()}-${idx}`;
-                    container.textContent = mermaidCode;
-                    pre.parentNode.replaceChild(container, pre);
-                });
-                mermaid.run({ nodes: mdLivePreview.querySelectorAll('.mermaid') });
-            } catch (e) {
-                console.warn("Mermaid execution error:", e);
+            const hasMermaid = text.includes('mermaid');
+            if (hasMermaid && window.mermaid) {
+                try {
+                    const codeBlocks = mdLivePreview.querySelectorAll('pre code.language-mermaid, pre code.lang-mermaid');
+                    codeBlocks.forEach((codeBlock, idx) => {
+                        const pre = codeBlock.parentElement;
+                        const container = document.createElement('div');
+                        container.className = 'mermaid my-4 flex justify-center bg-slate-900/40 p-4 rounded-xl border border-slate-800 overflow-x-auto';
+                        container.id = `mermaid-render-${Date.now()}-${idx}`;
+                        container.textContent = codeBlock.textContent.trim();
+                        pre.parentNode.replaceChild(container, pre);
+                    });
+                    if (codeBlocks.length > 0) {
+                        mermaid.run({ nodes: mdLivePreview.querySelectorAll('.mermaid') });
+                    }
+                } catch (e) {
+                    console.warn("Mermaid execution error:", e);
+                }
             }
-        }
-    }, 150);
+        });
+    }, delay);
 }
 
 function setEditorLayout(mode) {

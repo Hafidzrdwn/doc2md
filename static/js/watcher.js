@@ -32,6 +32,7 @@ async function fetchWatcherStatus() {
 function updateWatcherUI(data) {
     if (!data) return;
     const isActive = data.is_active;
+    window.isWatcherRunning = isActive;
 
     if (watcherStatusPill) {
         if (isActive) {
@@ -183,7 +184,22 @@ if (btnClearWatcherHistory) {
             fetchWatcherStatus();
         }
     });
+let isWatcherTabActive = false;
+let watcherPollingTimer = null;
+
+function startWatcherPolling() {
+    if (watcherPollingTimer) return;
+    fetchWatcherStatus();
+    watcherPollingTimer = setInterval(() => {
+        if (isWatcherTabActive || window.isWatcherRunning) {
+            fetchWatcherStatus();
+        }
+    }, 5000);
 }
 
-setInterval(fetchWatcherStatus, 3000);
-fetchWatcherStatus();
+window.setWatcherTabActive = function(active) {
+    isWatcherTabActive = active;
+    if (active) fetchWatcherStatus();
+};
+
+startWatcherPolling();

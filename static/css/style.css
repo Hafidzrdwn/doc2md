@@ -1,4 +1,4 @@
-/* Doc2MD Studio - Stylesheet */
+/* Doc2MD Studio - High Performance Stylesheet */
 
 body {
     font-family: 'Plus Jakarta Sans', sans-serif;
@@ -41,63 +41,81 @@ code, pre, textarea.font-mono, .font-mono {
     animation: pulse-subtle 2s infinite ease-in-out;
 }
 
-/* Live Markdown Preview Styles */
+/* High-Performance 60fps Scrolling & Virtualized Rendering */
+#mdLivePreview, #mdInputArea, #outputArea, #diffSideBySideContainer, #diffUnifiedContainer {
+    contain: layout style;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.markdown-preview pre, .markdown-preview table, .markdown-preview .mermaid {
+    content-visibility: auto;
+    contain-intrinsic-size: 140px;
+}
+
+/* Live Markdown Preview Styles & Polished Spacing */
 .markdown-preview h1 {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     font-weight: 700;
     color: #38bdf8;
     border-bottom: 1px solid #1e293b;
-    padding-bottom: 0.35rem;
-    margin-top: 1.2rem;
-    margin-bottom: 0.5rem;
+    padding-bottom: 0.45rem;
+    margin-top: 1.8rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
 }
 
 .markdown-preview h2 {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #f1f5f9;
     border-bottom: 1px solid #334155;
-    padding-bottom: 0.25rem;
-    margin-top: 1rem;
-    margin-bottom: 0.4rem;
+    padding-bottom: 0.35rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.65rem;
+    line-height: 1.35;
 }
 
 .markdown-preview h3 {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: #e2e8f0;
-    margin-top: 0.8rem;
-    margin-bottom: 0.3rem;
+    margin-top: 1.3rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
 }
 
 .markdown-preview p {
-    margin-bottom: 0.65rem;
-    line-height: 1.6;
+    margin-top: 0;
+    margin-bottom: 0.95rem;
+    line-height: 1.7;
     color: #cbd5e1;
 }
 
 .markdown-preview ul,
 .markdown-preview ol {
-    padding-left: 1.3rem;
-    margin-bottom: 0.65rem;
+    padding-left: 1.4rem;
+    margin-top: 0;
+    margin-bottom: 0.95rem;
     color: #cbd5e1;
 }
 
 .markdown-preview li {
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.6;
 }
 
 .markdown-preview table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0.8rem 0;
-    font-size: 0.75rem;
+    margin: 1.2rem 0;
+    font-size: 0.8rem;
 }
 
 .markdown-preview th {
     background: #0f172a;
     border: 1px solid #334155;
-    padding: 6px 10px;
+    padding: 8px 12px;
     color: #38bdf8;
     text-align: left;
     font-weight: 600;
@@ -105,7 +123,7 @@ code, pre, textarea.font-mono, .font-mono {
 
 .markdown-preview td {
     border: 1px solid #1e293b;
-    padding: 6px 10px;
+    padding: 8px 12px;
     color: #94a3b8;
 }
 
@@ -114,42 +132,57 @@ code, pre, textarea.font-mono, .font-mono {
 }
 
 .markdown-preview blockquote {
-    border-left: 3px solid #0284c7;
+    border-left: 4px solid #0284c7;
     background: rgba(2, 132, 199, 0.08);
-    padding: 8px 12px;
-    margin: 0.8rem 0;
+    padding: 10px 14px;
+    margin: 1.2rem 0;
     border-radius: 0 6px 6px 0;
     color: #94a3b8;
+    line-height: 1.6;
 }
 
 .markdown-preview code:not(pre code) {
     background: #1e293b;
     color: #38bdf8;
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.85em;
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    vertical-align: baseline;
 }
 
 .markdown-preview pre {
     background: #030712;
     border: 1px solid #1e293b;
     border-radius: 8px;
-    padding: 10px 12px;
-    overflow-x: auto;
-    margin: 0.8rem 0;
-    font-size: 0.8rem;
+    padding: 14px 16px;
+    margin: 1.4rem 0 1.6rem 0;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.markdown-preview pre code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #e2e8f0;
 }
 
 .markdown-preview hr {
     border: 0;
     border-top: 1px solid #1e293b;
-    margin: 1.2rem 0;
+    margin: 1.6rem 0;
 }
 
 .markdown-preview img {
     max-width: 100%;
     border-radius: 8px;
-    margin: 0.5rem 0;
+    margin: 0.8rem 0;
     border: 1px solid #334155;
 }
 
@@ -157,9 +190,9 @@ code, pre, textarea.font-mono, .font-mono {
     display: flex;
     justify-content: center;
     background: rgba(15, 23, 42, 0.6);
-    padding: 12px;
+    padding: 14px;
     border-radius: 10px;
     border: 1px solid #1e293b;
-    margin: 1rem 0;
+    margin: 1.4rem 0;
     overflow-x: auto;
 }

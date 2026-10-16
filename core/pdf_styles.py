@@ -114,14 +114,20 @@ def get_print_css(theme: Optional[str] = None) -> str:
         padding: 20px 0;
     }}
 
+    ::-webkit-scrollbar {{
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }}
+
     /* Headings - Never orphan at the bottom of a page */
     h1, h2, h3, h4, h5, h6 {{
         font-family: {cfg.heading_font};
         color: {cfg.secondary_color};
         font-weight: 700;
-        line-height: 1.3;
-        margin-top: 1.6em;
-        margin-bottom: 0.6em;
+        line-height: 1.35;
+        margin-top: 1.8em;
+        margin-bottom: 0.65em;
         page-break-after: avoid !important;
         break-after: avoid !important;
     }}
@@ -153,8 +159,9 @@ def get_print_css(theme: Optional[str] = None) -> str:
 
     p {{
         margin-top: 0;
-        margin-bottom: 1em;
-        text-align: justify;
+        margin-bottom: 1.1em;
+        line-height: 1.7;
+        text-align: left;
     }}
 
     /* Unbreakable Blocks: Tables, Code Blocks, Admonitions, Blockquotes */
@@ -169,11 +176,11 @@ def get_print_css(theme: Optional[str] = None) -> str:
         border-collapse: collapse;
         margin: 1.4em 0;
         font-size: 9.5pt;
-        page-break-inside: auto; /* allow huge multi-page tables if needed */
+        page-break-inside: auto;
     }}
 
     thead {{
-        display: table-header-group; /* Repeat table header on every printed page */
+        display: table-header-group;
     }}
 
     tr {{
@@ -217,15 +224,23 @@ def get_print_css(theme: Optional[str] = None) -> str:
         margin-bottom: 0;
     }}
 
-    /* Code & Syntax Highlighting */
+    /* Code & Syntax Highlighting - Soft Wrap & No Dead Scrollbars */
     code {{
         font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
-        font-size: 9pt;
+        font-size: 8.8pt;
         background-color: #{cfg.code_bg};
         color: {cfg.accent_color};
-        padding: 2px 5px;
+        padding: 2px 6px;
         border-radius: 4px;
         border: 1px solid #{cfg.table_border_color};
+    }}
+
+    pre, .codehilite, pre code, .codehilite pre {{
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        overflow: visible !important;
+        overflow-x: visible !important;
     }}
 
     pre, .codehilite {{
@@ -233,10 +248,9 @@ def get_print_css(theme: Optional[str] = None) -> str:
         border: 1px solid #{cfg.table_border_color};
         border-radius: 8px;
         padding: 12px 16px;
-        overflow-x: auto;
-        margin: 1.4em 0;
+        margin: 1.5em 0 1.8em 0;
         font-size: 8.5pt;
-        line-height: 1.5;
+        line-height: 1.55;
     }}
 
     pre code {{
@@ -251,12 +265,13 @@ def get_print_css(theme: Optional[str] = None) -> str:
     /* Lists */
     ul, ol {{
         margin-top: 0;
-        margin-bottom: 1em;
+        margin-bottom: 1.2em;
         padding-left: 24px;
     }}
 
     li {{
-        margin-bottom: 0.35em;
+        margin-bottom: 0.4em;
+        line-height: 1.6;
     }}
 
     li::marker {{
@@ -292,6 +307,15 @@ def get_print_css(theme: Optional[str] = None) -> str:
     }}
 
     @media print {{
+        ::-webkit-scrollbar {{
+            display: none !important;
+        }}
+        pre, .codehilite, pre code, .codehilite pre {{
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+            overflow: visible !important;
+        }}
         .no-print {{
             display: none !important;
         }}

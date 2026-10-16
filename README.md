@@ -36,6 +36,7 @@
 
 ### 6. 🖨️ Precision PDF & Standalone HTML Paged Media Engine
 - **Cegah Terpotong (Anti-Cutoff & Smart Page Breaks)**: Didesain dengan aturan CSS Paged Media (`break-inside: avoid` pada tabel, blockquote, callout, dan code block; `break-after: avoid` pada heading H1-H6) agar struktur dokumen tidak pernah terbelah janggal di batas halaman.
+- **Soft-Wrap Code Blocks & Anti-Scrollbar**: Blok kode otomatis melakukan pelipatan kata (`white-space: pre-wrap; word-break: break-word`) tanpa memunculkan scrollbar horizontal statis yang mengganggu saat dicetak atau diekspor ke PDF.
 - **Header Tabel Berulang**: Judul tabel otomatis berulang di setiap halaman cetak baru (`thead { display: table-header-group; }`).
 - **Sintaks Highlighting Elegan**: Blok kode diformat dengan pewarnaan sintaks Pygments profesional.
 - **Format Siap Cetak (A4 Standard)**: Dilengkapi nomor halaman otomatis (*Halaman X dari Y*) dan tombol cetak instan.
@@ -46,7 +47,8 @@
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
 
-### 8. 🌓 Live Split-Screen Markdown Editor + KaTeX & Mermaid
+### 8. 🌓 High-Performance Live Split-Screen Editor + KaTeX & Mermaid
+- **Performa Tinggi Dokumen Masif**: Dioptimalkan dengan *dynamic debouncing* (120ms-250ms), CSS `contain: layout style`, `content-visibility: auto`, serta rendering bersyarat KaTeX dan Mermaid agar tetap mulus (*smooth 60fps scrolling*) bahkan pada dokumen berukuran puluhan ribu karakter.
 - **Editor & Live Preview Interaktif**: Mode tampilan fleksibel (*Split*, *Edit Saja*, *Preview Saja*) dengan sinkronisasi karakter dan baris secara real-time.
 - **Formula Matematika KaTeX**: Mendukung render persamaan matematika baik *inline* (`$E = mc^2$`) maupun *block/display* (`$$\sum ...$$`).
 - **Diagram Alur Mermaid.js**: Merender diagram alur grafis (*flowchart*, *sequence*, dll.) dari blok ` ```mermaid ` langsung di layar.
