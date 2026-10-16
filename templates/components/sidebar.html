@@ -1,0 +1,125 @@
+<aside id="sidebar" class="w-64 min-w-[16rem] bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between h-screen sticky top-0 z-40 transition-all duration-300 select-none">
+    <!-- Top Branding & Navigation -->
+    <div class="flex flex-col gap-6 p-5">
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3 pb-4 border-b border-slate-800/80">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25 flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                </svg>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-bold text-sm tracking-tight text-white">DOC-TO-MARKDOWN</span>
+                <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-full w-fit mt-0.5">v2.0 • Offline Studio</span>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300 px-2 mb-1">Navigasi Studio</span>
+
+            <!-- Tab 1: Doc to MD -->
+            <button id="tabModeDoc2Md" class="w-full text-left px-3 py-2.5 rounded-xl bg-sky-600 text-white font-semibold transition flex items-center gap-3 shadow-md shadow-sky-600/20 group">
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold truncate leading-tight">Dokumen ➔ Markdown</span>
+                    <span class="text-[10px] text-sky-200/80 font-normal truncate mt-0.5">Ekstraksi Dokumen & AI</span>
+                </div>
+            </button>
+
+            <!-- Tab 2: MD to Doc -->
+            <button id="tabModeMd2Doc" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded-lg bg-slate-800/80 group-hover:bg-slate-700/80 flex items-center justify-center flex-shrink-0 transition">
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold truncate leading-tight">Markdown ➔ Dokumen</span>
+                    <span class="text-[10px] text-slate-300 font-normal truncate mt-0.5">Word (.docx) & PDF</span>
+                </div>
+            </button>
+
+            <!-- Tab 3: Watcher -->
+            <button id="tabModeWatcher" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded-lg bg-slate-800/80 group-hover:bg-slate-700/80 flex items-center justify-center flex-shrink-0 transition relative">
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span id="watcherHeaderDot" class="w-2 h-2 rounded-full bg-slate-600 absolute -top-0.5 -right-0.5 border border-slate-900"></span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-semibold truncate leading-tight">Auto-Watcher</span>
+                    </div>
+                    <span class="text-[10px] text-slate-300 font-normal truncate mt-0.5">Pantau Folder Otomatis</span>
+                </div>
+            </button>
+
+            <!-- Tab 4: Diff Viewer -->
+            <button id="tabModeDiff" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded-lg bg-slate-800/80 group-hover:bg-slate-700/80 flex items-center justify-center flex-shrink-0 transition">
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold truncate leading-tight">Diff Viewer</span>
+                    <span class="text-[10px] text-slate-300 font-normal truncate mt-0.5">Bandingkan 2 Naskah MD</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Status & Reset Controls -->
+    <div class="p-4 border-t border-slate-800/80 flex flex-col gap-3 bg-slate-950/40">
+        <!-- Live Status Card -->
+        <div id="statsSummary" class="bg-slate-950/80 rounded-xl p-3 border border-slate-800 text-xs flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-300 font-medium">Dokumen:</span>
+                <span id="statFiles" class="font-mono text-slate-200 font-bold">0 file</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-300 font-medium">Total Token:</span>
+                <span id="statTokens" class="font-mono text-emerald-400 font-bold">0</span>
+            </div>
+            <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[10px]" id="watcherGlobalPill">
+                <span class="text-slate-300">Watcher:</span>
+                <div class="flex items-center gap-1.5">
+                    <span id="watcherGlobalDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                    <span id="watcherGlobalText" class="text-slate-300 font-mono font-medium">OFF</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Reset Button with Dropup Menu -->
+        <div class="relative" id="resetMenuWrapper">
+            <div class="flex items-center rounded-xl overflow-hidden border border-slate-700 bg-slate-800/80 hover:border-slate-600 transition shadow-sm">
+                <button id="globalResetBtn" type="button" title="Reset form pada halaman yang sedang dibuka" class="flex-1 flex items-center justify-center gap-2 py-2 px-3 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700/60 transition">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span id="resetBtnLabel">Reset Halaman</span>
+                </button>
+                <button id="toggleResetMenuBtn" type="button" title="Pilihan Reset" class="px-2 py-2 border-l border-slate-700 hover:bg-slate-700 text-slate-400 hover:text-white transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                </button>
+            </div>
+
+            <!-- Contextual Dropup Menu -->
+            <div id="resetDropupMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 text-xs flex flex-col gap-1 backdrop-blur-lg">
+                <button id="btnResetActivePage" type="button" class="w-full text-left px-3 py-2 rounded-lg text-slate-200 hover:bg-slate-800 transition flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-sky-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-semibold text-white leading-tight">Reset Halaman Aktif</span>
+                        <span id="resetActivePageHint" class="text-[10px] text-slate-400 truncate mt-0.5">Bersihkan form tab ini</span>
+                    </div>
+                </button>
+                <div class="border-t border-slate-800 my-0.5"></div>
+                <button id="btnResetAllPages" type="button" class="w-full text-left px-3 py-2 rounded-lg text-rose-300 hover:bg-rose-950/50 hover:text-rose-200 transition flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <div class="flex flex-col min-w-0">
+                        <span class="font-semibold text-rose-300 leading-tight">Reset Semua (Global)</span>
+                        <span class="text-[10px] text-rose-400/80 truncate mt-0.5">Kosongkan semua data aplikasi</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</aside>

@@ -203,3 +203,22 @@ window.setWatcherTabActive = function(active) {
 };
 
 startWatcherPolling();
+
+window.resetWatcher = async function() {
+    if (window.isWatcherRunning) {
+        try {
+            await fetch('/watcher/stop', { method: 'POST' });
+        } catch (e) {
+            console.warn('Stop watcher error:', e);
+        }
+    }
+    if (watcherInputPath) watcherInputPath.value = 'watch_input';
+    if (watcherOutputPath) watcherOutputPath.value = 'watch_output';
+    if (watcherFrontmatterSelect) watcherFrontmatterSelect.value = 'none';
+    if (watcherChunkSelect) watcherChunkSelect.value = '0';
+    try {
+        await fetch('/watcher/clear-history', { method: 'POST' });
+    } catch (e) {}
+    fetchWatcherStatus();
+    fetchWatcherHistory();
+};

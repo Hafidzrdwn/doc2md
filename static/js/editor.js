@@ -298,3 +298,23 @@ if (mdFileInput) {
         if (e.target.files.length) handleMdFile(e.target.files[0]);
     });
 }
+
+window.resetMd2Doc = function() {
+    if (mdFileInput) mdFileInput.value = '';
+    if (mdFileSelectedName) mdFileSelectedName.textContent = 'Pilih atau seret berkas Markdown (.md)';
+    if (mdInputArea) mdInputArea.value = '';
+    if (targetDocxName) targetDocxName.value = 'dokumen';
+    if (mdCharCount) mdCharCount.textContent = '0 karakter';
+    if (mdLineCount) mdLineCount.textContent = '0 baris';
+    if (mdLivePreview) {
+        mdLivePreview.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-20">
+                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </div>
+                <p class="text-xs font-semibold text-slate-400">Pratinjau Hasil Dokumen</p>
+                <p class="text-[11px] text-slate-600 mt-1 max-w-xs">Ketik atau upload teks Markdown di panel editor sebelah kiri untuk melihat render langsung.</p>
+            </div>
+        `;
+    }
+};

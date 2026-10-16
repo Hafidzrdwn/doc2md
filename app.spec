@@ -9,15 +9,16 @@ docx_datas, docx_binaries, docx_hiddenimports = collect_all('docx')
 lxml_datas, lxml_binaries, lxml_hiddenimports = collect_all('lxml')
 mammoth_datas, mammoth_binaries, mammoth_hiddenimports = collect_all('mammoth')
 cobble_datas, cobble_binaries, cobble_hiddenimports = collect_all('cobble')
+pymdownx_datas, pymdownx_binaries, pymdownx_hiddenimports = collect_all('pymdownx')
 
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=pdfminer_binaries + pypdfium2_binaries + pdfplumber_binaries + docx_binaries + lxml_binaries + mammoth_binaries + cobble_binaries,
+    binaries=pdfminer_binaries + pypdfium2_binaries + pdfplumber_binaries + docx_binaries + lxml_binaries + mammoth_binaries + cobble_binaries + pymdownx_binaries,
     datas=[
         ('templates', 'templates'),
         ('static', 'static'),
-    ] + pdfminer_datas + pypdfium2_datas + pdfplumber_datas + docx_datas + lxml_datas + mammoth_datas + cobble_datas,
+    ] + pdfminer_datas + pypdfium2_datas + pdfplumber_datas + docx_datas + lxml_datas + mammoth_datas + cobble_datas + pymdownx_datas,
     hiddenimports=[
         # ── tiktoken ─────────────────────────────────────────────────────────
         'tiktoken',
@@ -122,7 +123,7 @@ a = Analysis(
         'psutil',
         # ── misc ─────────────────────────────────────────────────────────────
         'logging.handlers',
-    ] + pdfminer_hiddenimports + pypdfium2_hiddenimports + pdfplumber_hiddenimports + docx_hiddenimports + lxml_hiddenimports + mammoth_hiddenimports + cobble_hiddenimports,
+    ] + pdfminer_hiddenimports + pypdfium2_hiddenimports + pdfplumber_hiddenimports + docx_hiddenimports + lxml_hiddenimports + mammoth_hiddenimports + cobble_hiddenimports + pymdownx_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

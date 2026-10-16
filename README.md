@@ -93,7 +93,14 @@
 - **Analisis Delta Token & Karakter**: Mengukur persentase kemiripan dokumen (*similarity ratio*), delta token OpenAI `tiktoken`, penambahan/pengurangan baris teks, serta selisih karakter secara akurat.
 - **Integrasi UI & File Upload**: Dilengkapi tab *Document Diff*, opsi swap dokumen instan, pemuat contoh revisi dokumen, serta upload berkas multi-format untuk komparasi langsung.
 
-### 14. 💻 Desktop Native & Offline
+### 14. 🧭 Modern Sidebar Navigation & Smart Contextual Reset
+- **Navigasi Sidebar Vertikal Elegan**: Menggantikan navbar horizontal atas yang sesak dengan Sidebar modern di sisi kiri, memberikan 100% ruang kerja horizontal yang luas dan lega pada area kerja utama.
+- **Smart Contextual Reset System**: Fitur reset cerdas yang mengenali halaman aktif secara otomatis:
+  - *Reset Halaman Aktif*: Hanya membersihkan formulir dan antrean tab yang sedang dibuka (Doc ➔ MD, Editor MD, Folder Watcher, atau Diff Viewer) tanpa menghapus data tab lainnya.
+  - *Reset Semua (Global)*: Opsi pembersihan total seluruh sesi aplikasi ke kondisi awal pabrik dengan konfirmasi aman.
+- **Resilient Fallback Preview & Print**: Mekanisme render dokumen HTML dan PDF yang terlindungi dari error dependensi pihak ketiga, serta tombol *Preview Cetak* yang langsung membuka tab interaktif.
+
+### 15. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---

@@ -1,60 +1,25 @@
-<header class="border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-sm tracking-tight text-white">DOC-TO-MARKDOWN</span>
-                        <span class="text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full">v2.0 • Offline Studio</span>
-                    </div>
-                </div>
-            </div>
+<header class="border-b border-slate-800/80 px-6 py-3 flex items-center justify-between bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
+    <!-- Active Section Breadcrumb & Description -->
+    <div class="flex items-center gap-3">
+        <!-- Mobile Sidebar Toggle Button -->
+        <button id="mobileSidebarToggle" type="button" class="md:hidden p-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white" title="Buka menu navigasi">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
 
-            <!-- Mode Selector Tabs -->
-            <div class="hidden sm:flex items-center bg-slate-950 border border-slate-800 p-1 rounded-xl gap-1 ml-4 text-xs font-medium">
-                <button id="tabModeDoc2Md" class="px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold transition flex items-center gap-1.5 shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Dokumen ➔ Markdown
-                </button>
-                <button id="tabModeMd2Doc" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Markdown ➔ Dokumen Word (.docx) & PDF
-                </button>
-                <button id="tabModeWatcher" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span>Auto-Watcher</span>
-                    <span id="watcherHeaderDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
-                </button>
-                <button id="tabModeDiff" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    <span>Diff Viewer</span>
-                </button>
+        <div class="flex items-center gap-2.5">
+            <span id="activePageDot" class="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-sm shadow-sky-500/50"></span>
+            <div class="flex items-baseline gap-2">
+                <h1 id="activePageTitle" class="text-sm font-bold text-white tracking-tight">Dokumen ➔ Markdown</h1>
+                <span id="activePageDesc" class="text-xs text-slate-400 hidden sm:inline">• Konversi dokumen multi-format ke Markdown AI</span>
             </div>
         </div>
+    </div>
 
-        <!-- Global Action Controls -->
-        <div class="flex items-center gap-3">
-            <div id="watcherGlobalPill" class="hidden sm:flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80 text-xs">
-                <span id="watcherGlobalDot" class="w-2 h-2 rounded-full bg-slate-600"></span>
-                <span id="watcherGlobalText" class="text-slate-400 font-mono text-[11px]">Watcher: OFF</span>
-            </div>
-
-            <div id="statsSummary" class="text-xs text-slate-400 hidden sm:flex items-center gap-4 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800/80">
-                <div>File: <span id="statFiles" class="font-mono text-slate-200 font-bold">0</span></div>
-                <div class="w-1 h-3 bg-slate-800 rounded"></div>
-                <div>Total Token: <span id="statTokens" class="font-mono text-emerald-400 font-bold">0</span></div>
-            </div>
-
-            <!-- Reset Button -->
-            <button id="globalResetBtn" title="Reset semua data dan form" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 bg-slate-800/80 hover:bg-rose-950/40 hover:text-rose-300 hover:border-rose-800/60 text-slate-300 transition shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                <span>Reset</span>
-            </button>
-        </div>
-    </header>
+    <!-- Quick Environment Badges -->
+    <div class="flex items-center gap-3">
+        <span class="text-[11px] font-medium text-slate-400 hidden sm:inline-flex items-center gap-1.5 bg-slate-950/60 border border-slate-800/80 px-3 py-1 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Local Engine Active</span>
+        </span>
+    </div>
+</header>

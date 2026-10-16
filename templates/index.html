@@ -23,17 +23,23 @@
     <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
+<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex antialiased selection:bg-sky-500/30 selection:text-sky-200">
 
-    {% include 'components/header.html' %}
+    <!-- Sidebar Navigation -->
+    {% include 'components/sidebar.html' %}
 
-    <!-- Main Workspace -->
-    <main class="flex-1 p-6 flex flex-col gap-5 max-w-6xl w-full mx-auto">
-        {% include 'components/view_doc2md.html' %}
-        {% include 'components/view_md2doc.html' %}
-        {% include 'components/view_watcher.html' %}
-        {% include 'components/view_diff.html' %}
-    </main>
+    <!-- Main Workspace Content Area -->
+    <div class="flex-1 h-screen overflow-y-auto flex flex-col min-w-0">
+        {% include 'components/header.html' %}
+
+        <!-- Main Workspace -->
+        <main class="flex-1 p-6 md:p-8 flex flex-col gap-6 max-w-7xl w-full mx-auto">
+            {% include 'components/view_doc2md.html' %}
+            {% include 'components/view_md2doc.html' %}
+            {% include 'components/view_watcher.html' %}
+            {% include 'components/view_diff.html' %}
+        </main>
+    </div>
 
     <!-- Client Modular Scripts -->
     <script src="/static/js/common.js" defer></script>

@@ -319,3 +319,16 @@ Sistem kini dilengkapi RapidOCR ONNX Runtime 100% offline dan pemantau folder ot
         executeDiff();
     });
 }
+
+window.resetDiff = function() {
+    if (diffTitleA) diffTitleA.value = 'Draft Dokumen Versi 1';
+    if (diffTitleB) diffTitleB.value = 'Revisi Dokumen Versi 2';
+    if (diffInputA) diffInputA.value = '';
+    if (diffInputB) diffInputB.value = '';
+    if (diffFileInputA) diffFileInputA.value = '';
+    if (diffFileInputB) diffFileInputB.value = '';
+    if (diffResultsSection) diffResultsSection.classList.add('hidden');
+    if (diffSideBySideTableBody) diffSideBySideTableBody.innerHTML = '';
+    if (diffUnifiedTableBody) diffUnifiedTableBody.innerHTML = '';
+    currentDiffData = null;
+};

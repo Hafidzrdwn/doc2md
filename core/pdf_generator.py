@@ -16,6 +16,50 @@ from .pdf_styles import find_chromium_executable, get_pygments_css, get_print_cs
 logger = logging.getLogger(__name__)
 
 
+def get_markdown_converter() -> markdown.Markdown:
+    """
+    Creates and configures a Markdown converter with robust fallback handling.
+    If optional extensions (like pymdownx.superfences or pymdownx.tasklist) fail to load,
+    it falls back cleanly to standard built-in extensions without crashing.
+    """
+    extensions = [
+        'markdown.extensions.tables',
+        'markdown.extensions.fenced_code',
+        'markdown.extensions.codehilite',
+        'markdown.extensions.toc',
+        'markdown.extensions.nl2br',
+        'markdown.extensions.sane_lists',
+    ]
+    extension_configs = {
+        'markdown.extensions.codehilite': {
+            'css_class': 'codehilite',
+            'linenums': False,
+            'guess_lang': True,
+        }
+    }
+
+    # Safely probe and add pymdownx extensions if available
+    try:
+        import pymdownx.highlight
+        import pymdownx.superfences
+        extensions.append('pymdownx.superfences')
+    except Exception as exc:
+        logger.debug(f"pymdownx.superfences not available, using standard fenced_code: {exc}")
+
+    try:
+        import pymdownx.tasklist
+        extensions.append('pymdownx.tasklist')
+        extension_configs['pymdownx.tasklist'] = {'custom_checkbox': True}
+    except Exception as exc:
+        logger.debug(f"pymdownx.tasklist not available: {exc}")
+
+    try:
+        return markdown.Markdown(extensions=extensions, extension_configs=extension_configs)
+    except Exception as exc:
+        logger.warning(f"Failed to initialize enhanced Markdown parser, falling back to minimal: {exc}")
+        return markdown.Markdown(extensions=['markdown.extensions.tables', 'markdown.extensions.fenced_code'])
+
+
 def markdown_to_html_document(markdown_text: str, title: str = "Dokumen", theme: Optional[str] = None) -> str:
     """
     Converts raw Markdown text into a fully-styled, standalone HTML document
@@ -23,29 +67,7 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen", theme:
     """
     clean_title = (title or "Dokumen").strip()
     cfg = get_theme(theme)
-
-    md = markdown.Markdown(
-        extensions=[
-            'markdown.extensions.tables',
-            'markdown.extensions.fenced_code',
-            'markdown.extensions.codehilite',
-            'markdown.extensions.toc',
-            'markdown.extensions.nl2br',
-            'markdown.extensions.sane_lists',
-            'pymdownx.superfences',
-            'pymdownx.tasklist',
-        ],
-        extension_configs={
-            'markdown.extensions.codehilite': {
-                'css_class': 'codehilite',
-                'linenums': False,
-                'guess_lang': True,
-            },
-            'pymdownx.tasklist': {
-                'custom_checkbox': True,
-            }
-        }
-    )
+    md = get_markdown_converter()
 
     body_html = md.convert(markdown_text or "")
     css_content = get_print_css(theme=theme)

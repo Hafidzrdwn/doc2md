@@ -275,7 +275,7 @@ if (exportCurrentToHtmlBtn) {
         const curr = converted[activeIdx];
         const baseName = curr ? curr.filename.replace(/\.[^/.]+$/, "") : "Dokumen";
         if (typeof previewOrDownloadHtml === 'function') {
-            previewOrDownloadHtml(outputArea.value, baseName, false);
+            previewOrDownloadHtml(outputArea.value, baseName, true);
         } else {
             exportDocument('/md-to-html', outputArea.value, baseName, 'html');
         }
@@ -310,21 +310,20 @@ if (exportAllZipBtn) {
     });
 }
 
-if (globalResetBtn) {
-    globalResetBtn.addEventListener('click', () => {
-        if (confirm('Reset semua file dan kembalikan antarmuka ke kondisi awal?')) {
-            resetAll();
-        }
-    });
-}
-
-function resetAll() {
+window.resetDoc2Md = function() {
     converted = [];
     activeIdx = activeChunkIdx = 0;
     syncGlobalDocState();
     ['fileInput', 'outputArea'].forEach(id => { const i = el(id); if (i) i.value = ''; });
-    ['workspace', 'fileDetailsSection', 'statsSummary', 'chunkTabs'].forEach(id => { const c = el(id); if (c) c.classList.add('hidden'); });
-    ['fileCardsGrid', 'tabsContainer'].forEach(id => { const g = el(id); if (g) g.innerHTML = ''; });
+    ['workspace', 'fileDetailsSection', 'chunkTabs'].forEach(id => { const c = el(id); if (c) c.classList.add('hidden'); });
+    ['fileCardsGrid', 'tabsContainer', 'chunkBtnList'].forEach(id => { const g = el(id); if (g) g.innerHTML = ''; });
     if (statFiles) statFiles.textContent = '0';
     if (statTokens) statTokens.textContent = '0';
+    if (chunkSelect) chunkSelect.value = '0';
+    if (frontmatterSelect) frontmatterSelect.value = 'none';
+    if (promptPreset) promptPreset.value = 'raw';
+};
+
+function resetAll() {
+    window.resetDoc2Md();
 }
