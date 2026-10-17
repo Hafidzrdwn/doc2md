@@ -165,3 +165,11 @@ def test_api_watcher_endpoints(temp_dirs):
     # Verify stopped
     final_status = client.get("/watcher/status")
     assert final_status.json()["is_active"] is False
+
+    # 7. Test open-folder endpoint
+    open_res = client.post("/watcher/open-folder", data={"folder_type": "input"})
+    assert open_res.status_code == 200
+    assert open_res.json()["status"] == "opened"
+    assert open_res.json()["path"] == in_dir
+    assert os.path.exists(open_res.json()["path"])
+

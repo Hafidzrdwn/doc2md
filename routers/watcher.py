@@ -13,7 +13,41 @@ router = APIRouter(prefix="/watcher", tags=["watcher"])
 @router.get("/status")
 async def get_watcher_status_endpoint():
     """Returns the live status, watched directory, and event history of the folder watcher."""
+    # Ensure default folders exist so they can be browsed immediately
+    os.makedirs(os.path.abspath("watch_input"), exist_ok=True)
+    os.makedirs(os.path.abspath("watch_output"), exist_ok=True)
     return global_folder_watcher.get_status()
+
+
+@router.post("/open-folder")
+async def open_folder_endpoint(
+    folder_path: str = Form(None),
+    folder_type: str = Form("input")
+):
+    """Opens the requested directory in the native OS File Explorer (Windows Explorer)."""
+    import sys
+    import subprocess
+
+    if folder_path and folder_path.strip():
+        target = folder_path.strip()
+    elif folder_type == "output":
+        target = global_folder_watcher.output_dir or "watch_output"
+    else:
+        target = global_folder_watcher.input_dir or "watch_input"
+
+    abs_path = os.path.abspath(target)
+    os.makedirs(abs_path, exist_ok=True)
+
+    try:
+        if sys.platform == "win32":
+            os.startfile(abs_path)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", abs_path])
+        else:
+            subprocess.Popen(["xdg-open", abs_path])
+        return {"status": "opened", "path": abs_path}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc), "path": abs_path}
 
 
 @router.post("/start")
@@ -51,3 +85,4 @@ async def clear_watcher_history_endpoint():
     """Clears the watcher event history."""
     global_folder_watcher.clear_history()
     return {"status": "cleared"}
+

@@ -25,8 +25,26 @@ const diffUnifiedContainer = el('diffUnifiedContainer');
 const diffUnifiedTableBody = el('diffUnifiedTableBody');
 const diffHeadTitleA = el('diffHeadTitleA');
 const diffHeadTitleB = el('diffHeadTitleB');
+const diffStatsA = el('diffStatsA');
+const diffStatsB = el('diffStatsB');
 
 let currentDiffData = null;
+
+function updateDiffStats() {
+    if (diffStatsA && diffInputA) {
+        const lenA = diffInputA.value ? diffInputA.value.length : 0;
+        const linesA = diffInputA.value ? diffInputA.value.split('\n').length : 0;
+        diffStatsA.textContent = `${lenA.toLocaleString()} kar • ${linesA.toLocaleString()} baris`;
+    }
+    if (diffStatsB && diffInputB) {
+        const lenB = diffInputB.value ? diffInputB.value.length : 0;
+        const linesB = diffInputB.value ? diffInputB.value.split('\n').length : 0;
+        diffStatsB.textContent = `${lenB.toLocaleString()} kar • ${linesB.toLocaleString()} baris`;
+    }
+}
+
+if (diffInputA) diffInputA.addEventListener('input', updateDiffStats);
+if (diffInputB) diffInputB.addEventListener('input', updateDiffStats);
 
 async function executeDiff() {
     if (!diffInputA || !diffInputB) return;
@@ -197,6 +215,8 @@ if (btnSwapDiff) {
             diffTitleB.value = tmpTitle;
         }
 
+        updateDiffStats();
+
         if (diffInputA.value.trim() || diffInputB.value.trim()) {
             executeDiff();
         }
@@ -207,13 +227,16 @@ if (btnPullFromActiveDoc) {
     btnPullFromActiveDoc.addEventListener('click', () => {
         const outArea = el('outputArea');
         if (window.converted && window.converted.length && window.converted[window.activeIdx]) {
-            if (diffInputA) diffInputA.value = window.converted[window.activeIdx].markdown;
-            if (diffTitleA) diffTitleA.value = window.converted[window.activeIdx].filename;
+            const doc = window.converted[window.activeIdx];
+            if (diffInputA) diffInputA.value = doc.markdown || '';
+            if (diffTitleA) diffTitleA.value = doc.filename || 'Dokumen Aktif';
+            updateDiffStats();
         } else if (outArea && outArea.value.trim()) {
             if (diffInputA) diffInputA.value = outArea.value;
             if (diffTitleA) diffTitleA.value = "Dokumen Terkonversi Aktif";
+            updateDiffStats();
         } else {
-            alert('Belum ada dokumen aktif yang terkonversi di View 1.');
+            alert('Belum ada dokumen aktif yang terkonversi di Tab Doc to Markdown.');
         }
     });
 }
@@ -225,6 +248,7 @@ if (btnPullFromStudioDoc) {
         if (mdArea && mdArea.value.trim()) {
             if (diffInputB) diffInputB.value = mdArea.value;
             if (diffTitleB) diffTitleB.value = ((docName && docName.value.trim()) || 'Editor Studio') + '.md';
+            updateDiffStats();
         } else {
             alert('Editor Markdown Studio masih kosong.');
         }
@@ -235,10 +259,13 @@ function handleDiffFileUpload(file, targetInput, targetTitle) {
     if (!file || !targetInput) return;
     if (targetTitle) targetTitle.value = file.name;
     const ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (ext === 'txt' || ext === 'md') {
+    if (ext === 'txt' || ext === 'md' || ext === 'markdown') {
         const reader = new FileReader();
-        reader.onload = (e) => { targetInput.value = e.target.result; };
-        reader.readAsText(file);
+        reader.onload = (e) => { 
+            targetInput.value = e.target.result; 
+            updateDiffStats();
+        };
+        reader.readAsText(file, 'utf-8');
     } else {
         const fd = new FormData();
         fd.append('files', file);
@@ -248,6 +275,7 @@ function handleDiffFileUpload(file, targetInput, targetTitle) {
             .then(d => {
                 if (d.results && d.results[0] && d.results[0].status === 'success') {
                     targetInput.value = d.results[0].markdown;
+                    updateDiffStats();
                 } else {
                     alert('Gagal mengekstrak teks dokumen.');
                 }
@@ -316,6 +344,7 @@ Sistem kini dilengkapi RapidOCR ONNX Runtime 100% offline dan pemantau folder ot
 `;
         }
 
+        updateDiffStats();
         executeDiff();
     });
 }
@@ -331,4 +360,5 @@ window.resetDiff = function() {
     if (diffSideBySideTableBody) diffSideBySideTableBody.innerHTML = '';
     if (diffUnifiedTableBody) diffUnifiedTableBody.innerHTML = '';
     currentDiffData = null;
+    updateDiffStats();
 };

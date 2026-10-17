@@ -30,30 +30,62 @@
                         </div>
                     </div>
 
+                    <!-- Active Status Guidance Banner -->
+                    <div id="watcherActiveBanner" class="hidden bg-emerald-950/40 border border-emerald-600/50 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-md">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+                            <div>
+                                <p class="font-bold text-emerald-300">Watcher Sedang Aktif & Siap Memantau!</p>
+                                <p class="text-[11px] text-slate-300 mt-0.5">Letakkan file PDF, Word, Excel, atau Gambar ke folder input. Hasil konversi akan otomatis tersimpan di folder output.</p>
+                            </div>
+                        </div>
+                        <button id="btnBannerOpenInput" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-sm shrink-0">
+                            <span>📂 Buka Folder Input Sekarang</span>
+                        </button>
+                    </div>
+
                     <!-- Path Configurations -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-800/80 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80 text-xs">
                         <div class="space-y-1.5">
-                            <label class="font-semibold text-slate-300 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                     Folder Input (Pantau Dokumen):
                                 </span>
-                                <button id="btnResetInputPath" class="text-[10px] text-sky-400 hover:underline">Default</button>
-                            </label>
+                                <div class="flex items-center gap-1.5">
+                                    <button id="btnOpenInputFolder" class="px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-800/60 transition flex items-center gap-1 shadow-sm" title="Buka folder input ini langsung di Windows Explorer">
+                                        <span>📂 Buka Folder</span>
+                                    </button>
+                                    <button id="btnResetInputPath" class="text-[10px] text-slate-400 hover:text-sky-400 transition">Default</button>
+                                </div>
+                            </div>
                             <input type="text" id="watcherInputPath" value="watch_input" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-sky-500 transition" placeholder="Folder input relatif atau absolut..." />
-                            <p class="text-[10px] text-slate-400">Letakkan file PDF, DOCX, XLSX, PPTX, atau Gambar ke folder ini</p>
+                            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono bg-slate-950/60 border border-slate-800/80 rounded-lg px-2.5 py-1">
+                                <span class="text-sky-400 font-semibold shrink-0">Lokasi:</span>
+                                <span id="watcherInputAbsPath" class="truncate text-slate-300" title="Memuat lokasi path...">Memuat lokasi path...</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500">Letakkan file PDF, DOCX, XLSX, PPTX, atau Gambar ke folder ini</p>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="font-semibold text-slate-300 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold text-slate-300 flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     Folder Output (.md & assets/):
                                 </span>
-                                <button id="btnResetOutputPath" class="text-[10px] text-emerald-400 hover:underline">Default</button>
-                            </label>
+                                <div class="flex items-center gap-1.5">
+                                    <button id="btnOpenOutputFolder" class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/60 transition flex items-center gap-1 shadow-sm" title="Buka folder output ini langsung di Windows Explorer">
+                                        <span>📂 Buka Folder</span>
+                                    </button>
+                                    <button id="btnResetOutputPath" class="text-[10px] text-slate-400 hover:text-emerald-400 transition">Default</button>
+                                </div>
+                            </div>
                             <input type="text" id="watcherOutputPath" value="watch_output" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-emerald-500 transition" placeholder="Folder output relatif atau absolut..." />
-                            <p class="text-[10px] text-slate-400">File Markdown dan subfolder `assets/` gambar akan disimpan di sini</p>
+                            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono bg-slate-950/60 border border-slate-800/80 rounded-lg px-2.5 py-1">
+                                <span class="text-emerald-400 font-semibold shrink-0">Lokasi:</span>
+                                <span id="watcherOutputAbsPath" class="truncate text-slate-300" title="Memuat lokasi path...">Memuat lokasi path...</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500">File Markdown dan subfolder `assets/` gambar akan disimpan di sini</p>
                         </div>
                     </div>
                 </div>

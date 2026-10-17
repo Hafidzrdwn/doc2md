@@ -303,10 +303,14 @@ class FolderWatcher:
         """Returns the current state and settings of the folder watcher."""
         with self._lock:
             active = self._is_active and (self._observer is not None and self._observer.is_alive())
+            in_abs = os.path.abspath(self.input_dir or "watch_input")
+            out_abs = os.path.abspath(self.output_dir or "watch_output")
             return {
                 "is_active": active,
-                "input_dir": self.input_dir,
-                "output_dir": self.output_dir,
+                "input_dir": self.input_dir or "watch_input",
+                "output_dir": self.output_dir or "watch_output",
+                "input_dir_abs": in_abs,
+                "output_dir_abs": out_abs,
                 "frontmatter_preset": self.frontmatter_preset,
                 "chunk_tokens": self.chunk_tokens,
                 "total_processed": self.total_processed,

@@ -37,10 +37,13 @@
                     <!-- Document A Input -->
                     <div class="flex flex-col gap-2 bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
                         <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-800/60">
-                            <span class="font-bold text-rose-300 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                Dokumen A (Versi Awal / Asli)
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-rose-300 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                    Dokumen A (Versi Awal / Asli)
+                                </span>
+                                <span id="diffStatsA" class="text-[10px] text-slate-500 font-mono">0 kar</span>
+                            </div>
                             <div class="flex items-center gap-2">
                                 <button id="btnPullFromActiveDoc" class="text-[11px] text-sky-400 hover:underline">Muat dari Tab Aktif</button>
                                 <label class="cursor-pointer text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
@@ -49,17 +52,20 @@
                                 </label>
                             </div>
                         </div>
-                        <input type="text" id="diffTitleA" value="Dokumen Asli (v1)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-rose-500" placeholder="Judul Dokumen A..." />
-                        <textarea id="diffInputA" class="w-full h-44 bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-none focus:outline-none focus:border-rose-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen A di sini..." spellcheck="false"></textarea>
+                        <input type="text" id="diffTitleA" value="Dokumen Asli (v1)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-rose-500 font-mono truncate" placeholder="Judul Dokumen A..." />
+                        <textarea id="diffInputA" class="w-full min-h-[220px] bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-y focus:outline-none focus:border-rose-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen A di sini..." spellcheck="false"></textarea>
                     </div>
 
                     <!-- Document B Input -->
                     <div class="flex flex-col gap-2 bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
                         <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-800/60">
-                            <span class="font-bold text-emerald-300 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                Dokumen B (Versi Revisi / Baru)
-                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-emerald-300 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    Dokumen B (Versi Revisi / Baru)
+                                </span>
+                                <span id="diffStatsB" class="text-[10px] text-slate-500 font-mono">0 kar</span>
+                            </div>
                             <div class="flex items-center gap-2">
                                 <button id="btnPullFromStudioDoc" class="text-[11px] text-indigo-400 hover:underline">Muat dari Editor Studio</button>
                                 <label class="cursor-pointer text-[11px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
@@ -68,8 +74,8 @@
                                 </label>
                             </div>
                         </div>
-                        <input type="text" id="diffTitleB" value="Dokumen Revisi (v2)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-emerald-500" placeholder="Judul Dokumen B..." />
-                        <textarea id="diffInputB" class="w-full h-44 bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-none focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen B di sini..." spellcheck="false"></textarea>
+                        <input type="text" id="diffTitleB" value="Dokumen Revisi (v2)" class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-emerald-500 font-mono truncate" placeholder="Judul Dokumen B..." />
+                        <textarea id="diffInputB" class="w-full min-h-[220px] bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 resize-y focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Tempel teks Markdown Dokumen B di sini..." spellcheck="false"></textarea>
                     </div>
                 </div>
             </div>

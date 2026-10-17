@@ -57,3 +57,5 @@ Desktop.ini
 .gemini/
 
 .agents/
+watch_input/
+watch_output/

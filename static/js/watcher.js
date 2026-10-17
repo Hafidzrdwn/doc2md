@@ -7,6 +7,12 @@ const btnStartWatcher = el('btnStartWatcher');
 const btnStopWatcher = el('btnStopWatcher');
 const watcherInputPath = el('watcherInputPath');
 const watcherOutputPath = el('watcherOutputPath');
+const watcherInputAbsPath = el('watcherInputAbsPath');
+const watcherOutputAbsPath = el('watcherOutputAbsPath');
+const btnOpenInputFolder = el('btnOpenInputFolder');
+const btnOpenOutputFolder = el('btnOpenOutputFolder');
+const watcherActiveBanner = el('watcherActiveBanner');
+const btnBannerOpenInput = el('btnBannerOpenInput');
 const btnResetInputPath = el('btnResetInputPath');
 const btnResetOutputPath = el('btnResetOutputPath');
 const watcherFrontmatterSelect = el('watcherFrontmatterSelect');
@@ -55,11 +61,23 @@ function updateWatcherUI(data) {
         watcherGlobalText.className = isActive ? 'text-emerald-400 font-mono text-[11px] font-semibold' : 'text-slate-400 font-mono text-[11px]';
     }
 
+    if (watcherActiveBanner) {
+        if (isActive) {
+            watcherActiveBanner.classList.remove('hidden');
+        } else {
+            watcherActiveBanner.classList.add('hidden');
+        }
+    }
+
     if (btnStartWatcher) {
         btnStartWatcher.disabled = isActive;
-        btnStartWatcher.className = isActive 
-            ? 'px-4 py-2 rounded-xl bg-slate-800 text-slate-500 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-not-allowed'
-            : 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20';
+        if (isActive) {
+            btnStartWatcher.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Watcher Aktif</span>`;
+            btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-700/60 text-xs font-semibold flex items-center gap-1.5 cursor-default';
+        } else {
+            btnStartWatcher.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Aktifkan Watcher</span>`;
+            btnStartWatcher.className = 'px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20';
+        }
     }
 
     if (btnStopWatcher) {
@@ -71,6 +89,17 @@ function updateWatcherUI(data) {
 
     if (data.input_dir && !isActive && watcherInputPath) watcherInputPath.value = data.input_dir;
     if (data.output_dir && !isActive && watcherOutputPath) watcherOutputPath.value = data.output_dir;
+
+    if (watcherInputAbsPath) {
+        const inAbs = data.input_dir_abs || (data.input_dir || 'watch_input');
+        watcherInputAbsPath.textContent = inAbs;
+        watcherInputAbsPath.title = inAbs;
+    }
+    if (watcherOutputAbsPath) {
+        const outAbs = data.output_dir_abs || (data.output_dir || 'watch_output');
+        watcherOutputAbsPath.textContent = outAbs;
+        watcherOutputAbsPath.title = outAbs;
+    }
 
     if (watcherTotalProcessedBadge) watcherTotalProcessedBadge.textContent = (data.total_processed || 0).toLocaleString();
     if (watcherHistoryCount) watcherHistoryCount.textContent = (data.recent_events || []).length;
@@ -168,11 +197,57 @@ if (btnStopWatcher) {
     });
 }
 
+async function openFolder(folderType, customPath = null) {
+    try {
+        const fd = new FormData();
+        if (customPath && customPath.trim()) {
+            fd.append('folder_path', customPath.trim());
+        }
+        fd.append('folder_type', folderType);
+
+        const res = await fetch('/watcher/open-folder', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        if (data.status === 'error') {
+            alert('Tidak dapat membuka folder di File Explorer: ' + data.error);
+        }
+    } catch (e) {
+        alert('Gagal membuka folder di File Explorer: ' + e.message);
+    }
+}
+
+if (btnOpenInputFolder) {
+    btnOpenInputFolder.addEventListener('click', () => {
+        const custom = watcherInputPath ? watcherInputPath.value : 'watch_input';
+        openFolder('input', custom);
+    });
+}
+
+if (btnOpenOutputFolder) {
+    btnOpenOutputFolder.addEventListener('click', () => {
+        const custom = watcherOutputPath ? watcherOutputPath.value : 'watch_output';
+        openFolder('output', custom);
+    });
+}
+
+if (btnBannerOpenInput) {
+    btnBannerOpenInput.addEventListener('click', () => {
+        const custom = watcherInputPath ? watcherInputPath.value : 'watch_input';
+        openFolder('input', custom);
+    });
+}
+
 if (btnResetInputPath && watcherInputPath) {
-    btnResetInputPath.addEventListener('click', () => { watcherInputPath.value = 'watch_input'; });
+    btnResetInputPath.addEventListener('click', () => { 
+        watcherInputPath.value = 'watch_input'; 
+        fetchWatcherStatus();
+    });
 }
 if (btnResetOutputPath && watcherOutputPath) {
-    btnResetOutputPath.addEventListener('click', () => { watcherOutputPath.value = 'watch_output'; });
+    btnResetOutputPath.addEventListener('click', () => { 
+        watcherOutputPath.value = 'watch_output'; 
+        fetchWatcherStatus();
+    });
 }
 if (btnRefreshWatcherHistory) {
     btnRefreshWatcherHistory.addEventListener('click', fetchWatcherStatus);
@@ -184,6 +259,8 @@ if (btnClearWatcherHistory) {
             fetchWatcherStatus();
         }
     });
+}
+
 let isWatcherTabActive = false;
 let watcherPollingTimer = null;
 

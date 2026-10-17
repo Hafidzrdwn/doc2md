@@ -82,14 +82,16 @@
 - **Pemantau Latar Belakang Hands-Free**: Memanfaatkan library `watchdog` untuk memantau folder input (default: `watch_input/` atau path kustom) dan mendeteksi dokumen baru yang diletakkan secara instan.
 - **Deteksi Kestabilan File (Anti-Lock & Debounce)**: Memastikan file yang sedang disalin telah selesai ditulis 100% oleh sistem operasi sebelum proses konversi dimulai untuk mencegah kesalahan *file lock*.
 - **Otomasi Pipeline Penuh**: Mengekstrak teks, tabel, gambar biner (ke subfolder `<output_dir>/assets/`), menyematkan header Frontmatter YAML pilihan, dan menyimpan Markdown bersih langsung ke `<output_dir>/`.
+- **Akses Cepat Folder (1-Klik Windows Explorer)**: Menampilkan path absolut folder input dan output secara transparan di antarmuka, serta tombol interaktif "📂 Buka Folder" untuk langsung membuka direktori `watch_input` atau `watch_output` di Windows Explorer (via endpoint `POST /watcher/open-folder`). Banner panduan aktif juga muncul otomatis saat watcher berjalan.
 - **Feed Riwayat Real-Time**: Antarmuka studio menyediakan dashboard pemantau live dengan indikator status aktif/nonaktif, log konversi per dokumen, dan metrik token.
-- **REST API Kontrol**: Dilengkapi endpoint `GET /watcher/status`, `POST /watcher/start`, `POST /watcher/stop`, `GET /watcher/history`, dan `POST /watcher/clear-history`.
+- **REST API Kontrol**: Dilengkapi endpoint `GET /watcher/status`, `POST /watcher/start`, `POST /watcher/stop`, `GET /watcher/history`, `POST /watcher/clear-history`, dan `POST /watcher/open-folder`.
 
 ### 13. 🔍 Visual Document Diff Viewer (Komparasi Dokumen Visual)
 - **Komparasi Antar-Versi Real-Time**: Membandingkan dua naskah Markdown atau file dokumen secara langsung dari input teks bebas maupun berkas dokumen yang diunggah.
 - **Tampilan Fleksibel (Side-by-Side & Unified)**:
   - **Side-by-Side (Berdampingan)**: Menyajikan kolom Dokumen A dan Dokumen B secara simetris dengan baris sejajar (*row padding alignment*), mempermudah review perubahan berdampingan.
   - **Unified (Inline Git-Style)**: Tampilan terpadu satu aliran teks dengan penanda baris merah (`-`) untuk baris terhapus dan hijau (`+`) untuk baris yang baru ditambahkan.
+- **Anti-Cutoff & Metrik Real-Time Naskah**: Dilengkapi penampil metrik karakter dan baris live untuk Dokumen A dan Dokumen B, area penulisan dinamis (`min-h-[220px] resize-y`), serta integrasi penarikan naskah aktif yang mengambil 100% konten dokumen utuh tanpa pemotongan parsial.
 - **Analisis Delta Token & Karakter**: Mengukur persentase kemiripan dokumen (*similarity ratio*), delta token OpenAI `tiktoken`, penambahan/pengurangan baris teks, serta selisih karakter secara akurat.
 - **Integrasi UI & File Upload**: Dilengkapi tab *Document Diff*, opsi swap dokumen instan, pemuat contoh revisi dokumen, serta upload berkas multi-format untuk komparasi langsung.
 
