@@ -1,6 +1,6 @@
 let converted = window.converted || [];
 let activeIdx = window.activeIdx || 0;
-let activeChunkIdx = window.activeChunkIdx || 0;
+let activeChunkIdx = (window.activeChunkIdx !== undefined) ? window.activeChunkIdx : -1;
 const globalResetBtn = el('globalResetBtn');
 const dropzone = el('dropzone'), dropzoneNormal = el('dropzoneNormal'), dropzoneLoading = el('dropzoneLoading');
 const fileInput = el('fileInput'), chunkSelect = el('chunkSelect'), frontmatterSelect = el('frontmatterSelect');
@@ -62,7 +62,7 @@ async function upload(files) {
 
         converted = [...converted, ...newSuccess];
         activeIdx = converted.length - newSuccess.length;
-        activeChunkIdx = 0;
+        activeChunkIdx = -1;
         syncGlobalDocState();
         renderAll();
     } catch (err) {
@@ -113,7 +113,7 @@ function renderFileCards() {
 
         card.onclick = (e) => {
             if (e.target.closest('.remove-btn')) return;
-            activeIdx = idx; activeChunkIdx = 0; syncGlobalDocState(); renderAll();
+            activeIdx = idx; activeChunkIdx = -1; syncGlobalDocState(); renderAll();
         };
 
         const rmBtn = card.querySelector('.remove-btn');
@@ -125,7 +125,7 @@ function renderFileCards() {
 function removeFile(index) {
     converted.splice(index, 1);
     if (activeIdx >= converted.length) activeIdx = Math.max(0, converted.length - 1);
-    activeChunkIdx = 0;
+    activeChunkIdx = -1;
     syncGlobalDocState();
     if (converted.length === 0) resetAll(); else renderAll();
 }
@@ -148,7 +148,7 @@ function renderWorkspace() {
                 isSelected ? 'bg-sky-600 text-white border-sky-500 shadow-sm' : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
             }`;
             tab.textContent = item.filename;
-            tab.onclick = () => { activeIdx = idx; activeChunkIdx = 0; syncGlobalDocState(); renderAll(); };
+            tab.onclick = () => { activeIdx = idx; activeChunkIdx = -1; syncGlobalDocState(); renderAll(); };
             tabsContainer.appendChild(tab);
         });
     }
@@ -335,7 +335,8 @@ if (exportAllZipBtn) {
 
 window.resetDoc2Md = function() {
     converted = [];
-    activeIdx = activeChunkIdx = 0;
+    activeIdx = 0;
+    activeChunkIdx = -1;
     syncGlobalDocState();
     ['fileInput', 'outputArea'].forEach(id => { const i = el(id); if (i) i.value = ''; });
     ['workspace', 'fileDetailsSection', 'chunkTabs'].forEach(id => { const c = el(id); if (c) c.classList.add('hidden'); });

@@ -110,6 +110,7 @@ a = Analysis(
         'pymdownx',
         'pymdownx.superfences',
         'pymdownx.tasklist',
+        'pymdownx.arithmatex',
         'pygments',
         'pygments.formatters',
         'pygments.lexers',

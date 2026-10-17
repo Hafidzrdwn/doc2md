@@ -125,3 +125,26 @@ def test_batch_md_to_docx_zip_endpoint():
     assert "attachment; filename=\"batch_docx_" in response.headers["content-disposition"]
     assert len(response.content) > 0
 
+
+def test_batch_md_export_zip_formats():
+    import io, zipfile
+    items = [
+        {"filename": "bab1.md", "markdown": "# Bab 1\nPendahuluan $E=mc^2$", "theme": "modern_slate"}
+    ]
+
+    # Test format docx
+    res_docx = client.post("/batch-md-export-zip", json={"items": items, "format": "docx"})
+    assert res_docx.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(res_docx.content)) as zf:
+        assert "bab1.docx" in zf.namelist()
+
+    # Test format both
+    res_both = client.post("/batch-md-export-zip", json={"items": items, "format": "both"})
+    assert res_both.status_code == 200
+    assert "batch_export_" in res_both.headers["content-disposition"]
+    with zipfile.ZipFile(io.BytesIO(res_both.content)) as zf:
+        names = zf.namelist()
+        assert "bab1.docx" in names
+        assert "bab1.pdf" in names
+
+

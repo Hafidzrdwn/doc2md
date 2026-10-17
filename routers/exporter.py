@@ -166,15 +166,17 @@ async def download_batch_zip_endpoint(request: Request):
         return Response(content=f"Terjadi kesalahan saat membuat arsip ZIP: {str(exc)}", status_code=500)
 
 
+@router.post("/batch-md-export-zip")
 @router.post("/batch-md-to-docx-zip")
-async def batch_md_to_docx_zip_endpoint(request: Request):
-    """Converts a batch of markdown texts into styled DOCX files bundled in a single ZIP."""
+async def batch_md_export_zip_endpoint(request: Request):
+    """Converts a batch of markdown texts into styled DOCX and/or PDF files bundled in a single ZIP."""
     import io
     import zipfile
 
     try:
         body = await request.json()
         items = body.get("items", [])
+        export_format = (body.get("format") or "docx").lower().strip()
         if not items:
             return Response(content="Tidak ada berkas yang dipilih untuk dikonversi.", status_code=400)
 
@@ -187,20 +189,28 @@ async def batch_md_to_docx_zip_endpoint(request: Request):
                 if not md_content.strip():
                     continue
 
-                clean_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', raw_filename.rsplit('.', 1)[0]) or f"dokumen_{idx}"
-                if not clean_name.lower().endswith(".docx"):
-                    clean_name += ".docx"
+                base_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', raw_filename.rsplit('.', 1)[0]) or f"dokumen_{idx}"
 
-                docx_bytes = markdown_to_docx_bytes(md_content, theme=th)
-                zf.writestr(clean_name, docx_bytes)
+                if export_format in ("docx", "both", "all"):
+                    docx_bytes = markdown_to_docx_bytes(md_content, theme=th)
+                    zf.writestr(f"{base_name}.docx", docx_bytes)
+
+                if export_format in ("pdf", "both", "all"):
+                    try:
+                        pdf_bytes = markdown_to_pdf_bytes(md_content, title=base_name, theme=th)
+                        zf.writestr(f"{base_name}.pdf", pdf_bytes)
+                    except Exception as err:
+                        logger.error(f"Gagal render PDF untuk {base_name}: {err}")
 
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        prefix = "batch_export" if export_format in ("both", "all") else f"batch_{export_format}"
         return Response(
             content=zip_buffer.getvalue(),
             media_type="application/zip",
-            headers={"Content-Disposition": f'attachment; filename="batch_docx_{timestamp_str}.zip"'}
+            headers={"Content-Disposition": f'attachment; filename="{prefix}_{timestamp_str}.zip"'}
         )
     except Exception as exc:
-        logger.error(f"Gagal membuat batch DOCX: {exc}", exc_info=True)
-        return Response(content=f"Terjadi kesalahan saat membuat batch DOCX: {str(exc)}", status_code=500)
+        logger.error(f"Gagal membuat batch arsip: {exc}", exc_info=True)
+        return Response(content=f"Terjadi kesalahan saat membuat batch arsip: {str(exc)}", status_code=500)
+
 

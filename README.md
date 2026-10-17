@@ -39,10 +39,11 @@
 - **Soft-Wrap Code Blocks & Anti-Scrollbar**: Blok kode otomatis melakukan pelipatan kata (`white-space: pre-wrap; word-break: break-word`) tanpa memunculkan scrollbar horizontal statis yang mengganggu saat dicetak atau diekspor ke PDF.
 - **Header Tabel Berulang**: Judul tabel otomatis berulang di setiap halaman cetak baru (`thead { display: table-header-group; }`).
 - **Sintaks Highlighting Elegan**: Blok kode diformat dengan pewarnaan sintaks Pygments profesional.
-- **Format Siap Cetak (A4 Standard)**: Dilengkapi nomor halaman otomatis (*Halaman X dari Y*) dan tombol cetak instan.
+- **Formula Matematika KaTeX Offline**: Mendukung render persamaan matematika presisi baik inline (`$E = mc^2$`, `$\ge$`) maupun display (`$$\sum ...$$`) via `pymdownx.arithmatex` dan pustaka KaTeX lokal terintegrasi.
+- **Format Siap Cetak (A4 Standard) & Anti-Margin Cutoff**: Margin paged media terproteksi dengan `overflow-wrap: break-word`, memastikan teks dan formula tidak terpotong di tepi kertas.
 
 ### 7. 📦 Batch ZIP Archive Exporter & Manifest
-- **1-Klik Ekspor Massal**: Mengemas seluruh dokumen hasil konversi menjadi satu arsip `.zip` yang rapi.
+- **1-Klik Ekspor Massal Fleksibel**: Mengemas seluruh dokumen antrean menjadi satu arsip `.zip` dengan pilihan format output: **Word (.docx)**, **Dokumen (.pdf)**, atau **Keduanya (.docx + .pdf)**.
 - **Inklusi Folder Assets**: Seluruh aset gambar hasil ekstraksi dikemas utuh ke dalam folder `assets/` di dalam ZIP.
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
@@ -50,9 +51,10 @@
 ### 8. 🌓 High-Performance Live Split-Screen Editor + KaTeX & Mermaid
 - **Performa Tinggi Dokumen Masif**: Dioptimalkan dengan *dynamic debouncing* (120ms-250ms), CSS `contain: layout style`, `content-visibility: auto`, serta rendering bersyarat KaTeX dan Mermaid agar tetap mulus (*smooth 60fps scrolling*) bahkan pada dokumen berukuran puluhan ribu karakter.
 - **Editor & Live Preview Interaktif**: Mode tampilan fleksibel (*Split*, *Edit Saja*, *Preview Saja*) dengan sinkronisasi karakter dan baris secara real-time.
-- **Formula Matematika KaTeX**: Mendukung render persamaan matematika baik *inline* (`$E = mc^2$`) maupun *block/display* (`$$\sum ...$$`).
+- **Formula Matematika KaTeX Presisi**: Mendukung render persamaan matematika baik *inline* (`$E = mc^2$`) maupun *block/display* (`$$\sum ...$$`) pada preview interaktif dan sinkron dengan hasil ekspor PDF.
 - **Diagram Alur Mermaid.js**: Merender diagram alur grafis (*flowchart*, *sequence*, dll.) dari blok ` ```mermaid ` langsung di layar.
 - **Preset Template Praktis**: Tersedia tombol preset dokumen cepat (Laporan Eksekutif, Proposal Fitur, dan Spesifikasi Teknis Diagram/Formula).
+- **Anti-Truncation Chunker**: Pemecahan token cerdas menjaga keutuhan kalimat dan kata (bebas pemotongan kata di tengah huruf), serta menampilkan dokumen utuh secara default ("Semua (Utuh)").
 
 ### 9. 🎨 Professional Styling Presets & Theme Engine
 - **4 Preset Tema Standar Industri**:

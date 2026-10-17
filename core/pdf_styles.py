@@ -105,13 +105,17 @@ def get_print_css(theme: Optional[str] = None) -> str:
         padding: 0;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
+        word-break: normal;
+        overflow-wrap: break-word;
     }}
 
     /* Container */
     .document-wrapper {{
-        max-width: 820px;
+        width: 100%;
+        max-width: 800px;
         margin: 0 auto;
-        padding: 20px 0;
+        padding: 20px;
+        box-sizing: border-box;
     }}
 
     ::-webkit-scrollbar {{
@@ -162,6 +166,8 @@ def get_print_css(theme: Optional[str] = None) -> str:
         margin-bottom: 1.1em;
         line-height: 1.7;
         text-align: left;
+        overflow-wrap: break-word;
+        word-break: normal;
     }}
 
     /* Unbreakable Blocks: Tables, Code Blocks, Admonitions, Blockquotes */
@@ -306,9 +312,39 @@ def get_print_css(theme: Optional[str] = None) -> str:
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }}
 
+    /* KaTeX & Math Formulas */
+    .arithmatex {{
+        display: inline-block;
+        overflow-wrap: break-word;
+    }}
+
+    div.arithmatex {{
+        display: block;
+        margin: 1.2em 0;
+        text-align: center;
+    }}
+
+    .katex-display {{
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 4px 0;
+        margin: 1.2em 0 !important;
+    }}
+
+    .katex {{
+        font-size: 1.05em;
+        line-height: 1.2;
+        text-rendering: auto;
+    }}
+
     @media print {{
         ::-webkit-scrollbar {{
             display: none !important;
+        }}
+        body {{
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }}
         pre, .codehilite, pre code, .codehilite pre {{
             white-space: pre-wrap !important;
@@ -320,8 +356,12 @@ def get_print_css(theme: Optional[str] = None) -> str:
             display: none !important;
         }}
         .document-wrapper {{
-            padding: 0;
-            max-width: 100%;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
         }}
     }}
     """

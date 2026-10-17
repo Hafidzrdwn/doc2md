@@ -73,8 +73,15 @@ function renderQueue() {
         mdQueueContainer.classList.remove('flex');
     }
 
-    if (batchConvertQueueBtn) {
-        if (mdFileQueue.length > 1) {
+    const batchQueueOptions = document.getElementById('batchQueueOptions');
+    if (batchQueueOptions) {
+        if (mdFileQueue.length > 0) {
+            batchQueueOptions.classList.remove('hidden');
+        } else {
+            batchQueueOptions.classList.add('hidden');
+        }
+    } else if (batchConvertQueueBtn) {
+        if (mdFileQueue.length > 0) {
             batchConvertQueueBtn.classList.remove('hidden');
         } else {
             batchConvertQueueBtn.classList.add('hidden');
@@ -455,12 +462,20 @@ if (batchConvertQueueBtn) {
             return;
         }
 
+        const formatSelect = document.getElementById('batchZipFormatSelect');
+        const selectedFormat = (formatSelect ? formatSelect.value : 'docx').toLowerCase();
+
+        let formatLabel = '.DOCX';
+        if (selectedFormat === 'pdf') formatLabel = '.PDF';
+        else if (selectedFormat === 'both') formatLabel = '.DOCX + .PDF';
+
         batchConvertQueueBtn.disabled = true;
         const origText = batchConvertQueueBtnText ? batchConvertQueueBtnText.textContent : 'Konversi Seluruh Antrean Berkas (.ZIP)';
-        if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = `Mengonversi ${mdFileQueue.length} Berkas ke .DOCX...`;
+        if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = `Mengonversi ${mdFileQueue.length} Berkas ke ${formatLabel}...`;
 
         try {
             const payload = {
+                format: selectedFormat,
                 items: mdFileQueue.map(q => ({
                     filename: q.name,
                     markdown: q.content,
@@ -468,7 +483,7 @@ if (batchConvertQueueBtn) {
                 }))
             };
 
-            const res = await fetch('/batch-md-to-docx-zip', {
+            const res = await fetch('/batch-md-export-zip', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -478,7 +493,8 @@ if (batchConvertQueueBtn) {
 
             const blob = await res.blob();
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '_');
-            triggerDownload(blob, `docx_batch_export_${timestamp}.zip`);
+            const filePrefix = selectedFormat === 'both' ? 'batch_export' : `batch_${selectedFormat}`;
+            triggerDownload(blob, `${filePrefix}_${timestamp}.zip`);
 
             // Mark all items in queue as done
             mdFileQueue.forEach(q => q.status = 'done');

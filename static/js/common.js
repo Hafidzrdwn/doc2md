@@ -15,7 +15,7 @@ if (window.mermaid) {
 window.converted = [];
 window.uploadedFiles = window.converted;
 window.activeIdx = 0;
-window.activeChunkIdx = 0;
+window.activeChunkIdx = -1;
 
 function el(id) {
     return document.getElementById(id);
