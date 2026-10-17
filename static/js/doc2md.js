@@ -10,7 +10,7 @@ const fileDetailsSection = el('fileDetailsSection'), fileDetailsCount = el('file
 const workspace = el('workspace'), tabsContainer = el('tabsContainer'), chunkTabs = el('chunkTabs'), chunkBtnList = el('chunkBtnList');
 const outputArea = el('outputArea'), activeFileInfo = el('activeFileInfo'), savingStat = el('savingStat');
 const tokenBadge = el('tokenBadge'), statsSummary = el('statsSummary'), statFiles = el('statFiles'), statTokens = el('statTokens');
-const promptPreset = el('promptPreset'), copyBtn = el('copyBtn'), mergeBtn = el('mergeBtn');
+const promptPreset = el('promptPreset'), copyBtn = el('copyBtn'), downloadActiveMdBtn = el('downloadActiveMdBtn'), mergeBtn = el('mergeBtn');
 const exportCurrentToDocxBtn = el('exportCurrentToDocxBtn'), exportCurrentToPdfBtn = el('exportCurrentToPdfBtn');
 const exportCurrentToHtmlBtn = el('exportCurrentToHtmlBtn'), exportAllZipBtn = el('exportAllZipBtn'), exportAllZipBtnText = el('exportAllZipBtnText');
 
@@ -163,10 +163,21 @@ function updateActiveView() {
     if (curr.chunks && curr.chunks.length > 1 && chunkTabs && chunkBtnList) {
         chunkTabs.classList.remove('hidden');
         chunkBtnList.innerHTML = '';
+
+        // Tab Semua (Utuh)
+        const allBtn = document.createElement('button');
+        allBtn.className = `px-2.5 py-1 rounded-md text-[11px] font-mono border transition ${
+            activeChunkIdx === -1 ? 'bg-sky-600 text-white border-sky-500 shadow-sm font-semibold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
+        }`;
+        allBtn.textContent = `Semua (Utuh)`;
+        allBtn.title = `Tampilkan dan ekspor dokumen lengkap tanpa pemotongan chunk`;
+        allBtn.onclick = () => { activeChunkIdx = -1; syncGlobalDocState(); updateActiveView(); };
+        chunkBtnList.appendChild(allBtn);
+
         curr.chunks.forEach((_, cIdx) => {
             const cBtn = document.createElement('button');
             cBtn.className = `px-2.5 py-1 rounded-md text-[11px] font-mono border transition ${
-                cIdx === activeChunkIdx ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
+                cIdx === activeChunkIdx ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm font-semibold' : 'bg-slate-950 text-slate-400 border-slate-800 hover:bg-slate-800'
             }`;
             cBtn.textContent = `Part ${cIdx + 1}`;
             cBtn.onclick = () => { activeChunkIdx = cIdx; syncGlobalDocState(); updateActiveView(); };
@@ -176,7 +187,7 @@ function updateActiveView() {
         chunkTabs.classList.add('hidden');
     }
 
-    const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
+    const rawText = (activeChunkIdx >= 0 && curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
     if (outputArea) outputArea.value = applyPromptPreset(rawText, curr.filename);
     const imgNote = (curr.images_count && curr.images_count > 0) ? ` • 🖼️ ${curr.images_count} gambar diekstrak` : '';
     if (activeFileInfo) activeFileInfo.textContent = `${curr.filename} • ${curr.raw_size_kb} KB raw${imgNote}`;
@@ -197,7 +208,7 @@ if (promptPreset) {
         if (!converted.length) return;
         const curr = converted[activeIdx];
         if (!curr) return;
-        const rawText = (curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
+        const rawText = (activeChunkIdx >= 0 && curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
         if (outputArea) outputArea.value = applyPromptPreset(rawText, curr.filename);
     });
 }
@@ -209,6 +220,18 @@ if (copyBtn) {
         const orig = copyBtn.innerHTML;
         copyBtn.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Tersalin!</span>`;
         setTimeout(() => copyBtn.innerHTML = orig, 1500);
+    });
+}
+
+if (downloadActiveMdBtn) {
+    downloadActiveMdBtn.addEventListener('click', () => {
+        if (!converted.length) return;
+        const curr = converted[activeIdx];
+        if (!curr) return;
+        const textToDownload = (activeChunkIdx >= 0 && curr.chunks && curr.chunks.length > 0) ? curr.chunks[activeChunkIdx] : curr.markdown;
+        const baseName = curr.filename.replace(/\.[^/.]+$/, "");
+        const suffix = (activeChunkIdx >= 0 && curr.chunks && curr.chunks.length > 1) ? `_part_${activeChunkIdx + 1}` : '';
+        triggerDownload(new Blob([textToDownload], { type: 'text/markdown;charset=utf-8' }), `${baseName}${suffix}.md`);
     });
 }
 

@@ -69,7 +69,12 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen", theme:
     cfg = get_theme(theme)
     md = get_markdown_converter()
 
-    body_html = md.convert(markdown_text or "")
+    try:
+        body_html = md.convert(markdown_text or "")
+    except Exception as exc:
+        logger.warning(f"Conversion with enhanced parser failed: {exc}. Retrying with minimal parser...")
+        fallback_md = markdown.Markdown(extensions=['markdown.extensions.tables', 'markdown.extensions.fenced_code'])
+        body_html = fallback_md.convert(markdown_text or "")
     css_content = get_print_css(theme=theme)
 
     return f"""<!DOCTYPE html>

@@ -109,3 +109,19 @@ def test_download_batch_zip_endpoint():
     assert response.headers["content-type"] == "application/zip"
     assert "attachment; filename=\"doc2md_batch_" in response.headers["content-disposition"]
     assert len(response.content) > 0
+
+
+def test_batch_md_to_docx_zip_endpoint():
+    items = [
+        {"filename": "bab1.md", "markdown": "# Bab 1\nPendahuluan", "theme": "modern_slate"},
+        {"filename": "bab2.md", "markdown": "# Bab 2\nMetode Penelitian", "theme": "modern_slate"}
+    ]
+    response = client.post(
+        "/batch-md-to-docx-zip",
+        json={"items": items}
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    assert "attachment; filename=\"batch_docx_" in response.headers["content-disposition"]
+    assert len(response.content) > 0
+

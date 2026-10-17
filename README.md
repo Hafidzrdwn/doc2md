@@ -100,7 +100,14 @@
   - *Reset Semua (Global)*: Opsi pembersihan total seluruh sesi aplikasi ke kondisi awal pabrik dengan konfirmasi aman.
 - **Resilient Fallback Preview & Print**: Mekanisme render dokumen HTML dan PDF yang terlindungi dari error dependensi pihak ketiga, serta tombol *Preview Cetak* yang langsung membuka tab interaktif.
 
-### 15. 💻 Desktop Native & Offline
+### 15. 🚀 Multi-File Markdown Queue & Workspace Polish
+- **Antrean Berkas Markdown Fleksibel**: Mendukung unggah banyak file Markdown sekaligus (hingga 10 berkas) dengan panel antrean interaktif, indikator ukuran/status, tombol seleksi cepat, dan ekspor batch ke `.zip` file DOCX.
+- **Manajemen State Berkas Asli vs Template (UX Restoration)**: Ketika template contoh dimuat, sistem menyimpan berkas asli pengguna secara otomatis, memunculkan badge `[Mode Template]`, dan menyediakan tombol `"↩️ Kembali ke Berkas Saya"` untuk pemulihan instan.
+- **Chunking Cerdas Berbasis Paragraf (Anti-Truncate)**: Memecah teks besar dengan menjaga keutuhan paragraf dan kalimat agar tidak terpotong di tengah jalan (misal: bab panjang tidak terpotong di bab 1.2).
+- **Proteksi Overflow Nama File**: Penanganan nama file panjang dengan truncating dan tooltip informatif agar tidak menembus batas kotak kontainer.
+- **Tata Letak Panel Ergonomis**: Struktur grid 12-kolom seimbang yang menghilangkan ruang kosong tak terpakai dan memberikan margin kerja yang lega antara panel kontrol dan editor Markdown.
+
+### 16. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---

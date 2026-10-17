@@ -1,7 +1,16 @@
+// DOM Element References
 const targetDocxName = document.getElementById('targetDocxName');
 const mdDropzone = document.getElementById('mdDropzone');
 const mdFileInput = document.getElementById('mdFileInput');
 const mdFileSelectedName = document.getElementById('mdFileSelectedName');
+const mdQueueContainer = document.getElementById('mdQueueContainer');
+const mdQueueList = document.getElementById('mdQueueList');
+const mdQueueCount = document.getElementById('mdQueueCount');
+const clearQueueBtn = document.getElementById('clearQueueBtn');
+const batchConvertQueueBtn = document.getElementById('batchConvertQueueBtn');
+const batchConvertQueueBtnText = document.getElementById('batchConvertQueueBtnText');
+const restoreUserFileBtn = document.getElementById('restoreUserFileBtn');
+const templateActiveBadge = document.getElementById('templateActiveBadge');
 const mdInputArea = document.getElementById('mdInputArea');
 const mdCharCount = document.getElementById('mdCharCount');
 const mdLineCount = document.getElementById('mdLineCount');
@@ -19,32 +28,253 @@ const quickHtmlBtn = document.getElementById('quickHtmlBtn');
 const btnViewSplit = document.getElementById('btnViewSplit');
 const btnViewEdit = document.getElementById('btnViewEdit');
 const btnViewPreview = document.getElementById('btnViewPreview');
+const editorDualContainer = document.getElementById('editorDualContainer');
 const editorLeftPane = document.getElementById('editorLeftPane');
 const editorRightPane = document.getElementById('editorRightPane');
 const mdLivePreview = document.getElementById('mdLivePreview');
 const loadSampleReportBtn = document.getElementById('loadSampleReportBtn');
 const loadSampleProposalBtn = document.getElementById('loadSampleProposalBtn');
 const loadSampleMathDiagramBtn = document.getElementById('loadSampleMathDiagramBtn');
+const exportThemeSelect = document.getElementById('exportThemeSelect');
+const themeColorBadge = document.getElementById('themeColorBadge');
+const themeDescText = document.getElementById('themeDescText');
 
-function handleMdFile(file) {
-    if (!file) return;
-    mdFileSelectedName.textContent = `${file.name} (${Math.round(file.size / 1024 * 10) / 10} KB)`;
-    targetDocxName.value = file.name.replace(/\.[^/.]+$/, "");
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        mdInputArea.value = e.target.result;
-        updateMdStats();
-    };
-    reader.readAsText(file);
+// State Variables
+let mdFileQueue = [];
+let activeQueueId = null;
+let userOriginalFile = null; // Backup for "Kembali ke Berkas Saya"
+let isTemplateActive = false;
+
+// Theme configuration presets
+const THEME_INFO = {
+    'modern_slate': { color: '#0ea5e9', desc: 'Aksen Sky Blue modern, font sans rapi, cocok untuk laporan umum.' },
+    'corporate_navy': { color: '#1e3a8a', desc: 'Aksen Royal Navy formal, border solid berbobot, cocok untuk proposal & MoU resmi.' },
+    'classic_academic': { color: '#475569', desc: 'Tipografi Georgia serif klasik, spasi formal, cocok untuk jurnal ilmiah & makalah.' },
+    'emerald_tech': { color: '#059669', desc: 'Aksen Emerald Green kontemporer & font teknis, ideal untuk dokumentasi teknis & API.' }
+};
+
+function getSelectedTheme() {
+    return exportThemeSelect ? exportThemeSelect.value : 'modern_slate';
 }
 
+if (exportThemeSelect) {
+    exportThemeSelect.addEventListener('change', () => {
+        const t = THEME_INFO[exportThemeSelect.value] || THEME_INFO['modern_slate'];
+        if (themeColorBadge) themeColorBadge.style.backgroundColor = t.color;
+        if (themeDescText) themeDescText.textContent = t.desc;
+    });
+}
+
+// Helper to read File as Text with Promise
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result || '');
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file, 'utf-8');
+    });
+}
+
+// Queue Management
+function renderQueue() {
+    if (!mdQueueContainer || !mdQueueList) return;
+    
+    if (mdQueueCount) mdQueueCount.textContent = mdFileQueue.length;
+    
+    if (mdFileQueue.length > 0) {
+        mdQueueContainer.classList.remove('hidden');
+        mdQueueContainer.classList.add('flex');
+    } else {
+        mdQueueContainer.classList.add('hidden');
+        mdQueueContainer.classList.remove('flex');
+    }
+
+    if (batchConvertQueueBtn) {
+        if (mdFileQueue.length > 1) {
+            batchConvertQueueBtn.classList.remove('hidden');
+        } else {
+            batchConvertQueueBtn.classList.add('hidden');
+        }
+    }
+
+    mdQueueList.innerHTML = '';
+    mdFileQueue.forEach((item) => {
+        const isActive = (item.id === activeQueueId);
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-2 rounded-lg border text-xs transition cursor-pointer ${
+            isActive ? 'bg-sky-950/50 border-sky-600/60 shadow-sm' : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
+        }`;
+
+        let statusDot = `<span class="w-2 h-2 rounded-full bg-slate-500 shrink-0"></span>`;
+        if (isActive) {
+            statusDot = `<span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0"></span>`;
+        } else if (item.status === 'done') {
+            statusDot = `<span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="Selesai dikonversi"></span>`;
+        }
+
+        row.innerHTML = `
+            <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                ${statusDot}
+                <span class="truncate font-mono ${isActive ? 'text-sky-300 font-semibold' : 'text-slate-300'}" title="${item.name}">${item.name}</span>
+                <span class="text-[10px] text-slate-500 font-mono shrink-0">${item.sizeKb} KB</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                <button class="export-single-docx px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/60 transition" title="Unduh DOCX file ini">DOCX</button>
+                <button class="export-single-pdf px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60 transition" title="Unduh PDF file ini">PDF</button>
+                <button class="remove-queue-item p-1 text-slate-500 hover:text-rose-400 rounded transition" title="Hapus dari antrean">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        `;
+
+        row.onclick = (e) => {
+            if (e.target.closest('button')) return;
+            selectQueueItem(item.id);
+        };
+
+        const singleDocxBtn = row.querySelector('.export-single-docx');
+        if (singleDocxBtn) {
+            singleDocxBtn.onclick = (e) => {
+                e.stopPropagation();
+                exportDocument('/md-to-docx', item.content, item.name.replace(/\.[^/.]+$/, ""), 'docx');
+            };
+        }
+
+        const singlePdfBtn = row.querySelector('.export-single-pdf');
+        if (singlePdfBtn) {
+            singlePdfBtn.onclick = (e) => {
+                e.stopPropagation();
+                exportDocument('/md-to-pdf', item.content, item.name.replace(/\.[^/.]+$/, ""), 'pdf');
+            };
+        }
+
+        const rmBtn = row.querySelector('.remove-queue-item');
+        if (rmBtn) {
+            rmBtn.onclick = (e) => {
+                e.stopPropagation();
+                removeQueueItem(item.id);
+            };
+        }
+
+        mdQueueList.appendChild(row);
+    });
+}
+
+function selectQueueItem(id) {
+    const item = mdFileQueue.find(q => q.id === id);
+    if (!item) return;
+
+    activeQueueId = id;
+    if (mdInputArea) mdInputArea.value = item.content;
+    if (targetDocxName) targetDocxName.value = item.name.replace(/\.[^/.]+$/, "");
+    if (mdFileSelectedName) {
+        mdFileSelectedName.textContent = `${item.name} (${item.sizeKb} KB)`;
+        mdFileSelectedName.title = `${item.name} (${item.sizeKb} KB)`;
+    }
+
+    userOriginalFile = {
+        name: item.name,
+        content: item.content,
+        sizeKb: item.sizeKb
+    };
+    isTemplateActive = false;
+    if (templateActiveBadge) templateActiveBadge.classList.add('hidden');
+    if (restoreUserFileBtn) restoreUserFileBtn.classList.add('hidden');
+
+    updateMdStats();
+    renderQueue();
+}
+
+function removeQueueItem(id) {
+    mdFileQueue = mdFileQueue.filter(q => q.id !== id);
+    if (activeQueueId === id) {
+        if (mdFileQueue.length > 0) {
+            selectQueueItem(mdFileQueue[0].id);
+        } else {
+            activeQueueId = null;
+            if (mdFileInput) mdFileInput.value = '';
+            if (mdFileSelectedName) mdFileSelectedName.textContent = 'Belum ada file dipilih';
+            if (mdInputArea) mdInputArea.value = '';
+            if (targetDocxName) targetDocxName.value = 'Dokumen_Hasil_Konversi';
+            userOriginalFile = null;
+            updateMdStats();
+        }
+    }
+    renderQueue();
+}
+
+if (clearQueueBtn) {
+    clearQueueBtn.addEventListener('click', () => {
+        mdFileQueue = [];
+        activeQueueId = null;
+        if (mdFileInput) mdFileInput.value = '';
+        if (mdFileSelectedName) mdFileSelectedName.textContent = 'Belum ada file dipilih';
+        userOriginalFile = null;
+        renderQueue();
+    });
+}
+
+async function handleMdFiles(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList).filter(f => /\.(md|markdown|txt)$/i.test(f.name));
+    
+    if (files.length === 0) {
+        alert('Format file tidak didukung. Harap pilih berkas .md, .markdown, atau .txt');
+        return;
+    }
+
+    const availableSlots = 10 - mdFileQueue.length;
+    if (availableSlots <= 0) {
+        alert('Antrean sudah mencapai batas maksimum (10 berkas). Hapus berkas sebelum menambahkan yang baru.');
+        return;
+    }
+
+    let filesToAdd = files;
+    if (files.length > availableSlots) {
+        alert(`Batas maksimum antrean adalah 10 berkas. Hanya ${availableSlots} berkas pertama yang dimasukkan ke antrean.`);
+        filesToAdd = files.slice(0, availableSlots);
+    }
+
+    for (const file of filesToAdd) {
+        try {
+            const content = await readFileAsText(file);
+            const sizeKb = Math.round(file.size / 1024 * 10) / 10;
+            const item = {
+                id: 'queue_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                file: file,
+                name: file.name,
+                sizeKb: sizeKb,
+                content: content,
+                status: 'ready'
+            };
+            mdFileQueue.push(item);
+        } catch (err) {
+            console.error('Gagal membaca berkas:', file.name, err);
+        }
+    }
+
+    if (!activeQueueId && mdFileQueue.length > 0) {
+        selectQueueItem(mdFileQueue[0].id);
+    } else {
+        renderQueue();
+    }
+}
+
+// Live Input & Statistics
 if (mdInputArea) {
-    mdInputArea.addEventListener('input', updateMdStats);
+    mdInputArea.addEventListener('input', () => {
+        // If user modifies text in active queue item, keep in-memory queue synced
+        if (activeQueueId) {
+            const curItem = mdFileQueue.find(q => q.id === activeQueueId);
+            if (curItem) curItem.content = mdInputArea.value;
+        }
+        updateMdStats();
+    });
 }
 
 function updateMdStats() {
-    const text = mdInputArea.value;
-    if (mdCharCount) mdCharCount.textContent = `${text.length.toLocaleString()} karakter`;
+    const text = mdInputArea ? mdInputArea.value : '';
+    if (mdCharCount) mdCharCount.textContent = `${text.length.toLocaleString()} kar`;
     if (mdLineCount) mdLineCount.textContent = `${text ? text.split('\n').length : 0} baris`;
     renderLivePreview();
 }
@@ -114,24 +344,27 @@ function renderLivePreview() {
     }, delay);
 }
 
+// Layout Switcher (Split / Edit / Preview)
 function setEditorLayout(mode) {
     if (!btnViewSplit || !btnViewEdit || !btnViewPreview) return;
-    btnViewSplit.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 border-slate-800 text-slate-400 hover:text-slate-200";
-    btnViewEdit.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 border-slate-800 text-slate-400 hover:text-slate-200";
-    btnViewPreview.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 border-slate-800 text-slate-400 hover:text-slate-200";
+    
+    // Reset all buttons styling
+    [btnViewSplit, btnViewEdit, btnViewPreview].forEach(btn => {
+        btn.className = "px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition flex items-center gap-1";
+    });
 
     if (mode === 'split') {
-        btnViewSplit.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 bg-slate-800 text-sky-400 border-sky-500/50 shadow-sm";
-        editorLeftPane.className = "w-full md:w-1/2 flex flex-col bg-slate-900/60 rounded-2xl border border-slate-800 p-4 shadow-sm";
-        editorRightPane.className = "w-full md:w-1/2 flex flex-col bg-slate-900/60 rounded-2xl border border-slate-800 p-4 shadow-sm";
+        btnViewSplit.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+        if (editorLeftPane) editorLeftPane.classList.remove('hidden');
+        if (editorRightPane) editorRightPane.classList.remove('hidden');
     } else if (mode === 'edit') {
-        btnViewEdit.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 bg-slate-800 text-sky-400 border-sky-500/50 shadow-sm";
-        editorLeftPane.className = "w-full flex flex-col bg-slate-900/60 rounded-2xl border border-slate-800 p-4 shadow-sm";
-        editorRightPane.className = "hidden";
+        btnViewEdit.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+        if (editorLeftPane) editorLeftPane.classList.remove('hidden');
+        if (editorRightPane) editorRightPane.classList.add('hidden');
     } else if (mode === 'preview') {
-        btnViewPreview.className = "px-2.5 py-1 rounded-md text-xs transition border flex items-center gap-1.5 bg-slate-800 text-sky-400 border-sky-500/50 shadow-sm";
-        editorLeftPane.className = "hidden";
-        editorRightPane.className = "w-full flex flex-col bg-slate-900/60 rounded-2xl border border-slate-800 p-4 shadow-sm";
+        btnViewPreview.className = "px-2.5 py-1 rounded-md bg-sky-600 text-white font-medium transition flex items-center gap-1 shadow-sm";
+        if (editorLeftPane) editorLeftPane.classList.add('hidden');
+        if (editorRightPane) editorRightPane.classList.remove('hidden');
         renderLivePreview();
     }
 }
@@ -140,6 +373,7 @@ if (btnViewSplit) btnViewSplit.addEventListener('click', () => setEditorLayout('
 if (btnViewEdit) btnViewEdit.addEventListener('click', () => setEditorLayout('edit'));
 if (btnViewPreview) btnViewPreview.addEventListener('click', () => setEditorLayout('preview'));
 
+// HTML Preview or Download Helper
 async function previewOrDownloadHtml(text, rawName, openInTab = false) {
     if (!text || !text.trim()) {
         alert('Silakan sediakan naskah Markdown terlebih dahulu.');
@@ -166,59 +400,118 @@ async function previewOrDownloadHtml(text, rawName, openInTab = false) {
     }
 }
 
+// Export PDF Button
 if (generatePdfBtn) {
     generatePdfBtn.addEventListener('click', async () => {
-        const text = mdInputArea.value;
+        const text = mdInputArea ? mdInputArea.value : '';
         if (!text.trim()) {
             alert('Silakan masukkan atau upload teks Markdown terlebih dahulu.');
             return;
         }
         generatePdfBtn.disabled = true;
-        generatePdfBtnText.textContent = 'Merender PDF A4...';
+        if (generatePdfBtnText) generatePdfBtnText.textContent = 'Merender PDF A4...';
         try {
             await exportDocument('/md-to-pdf', text, targetDocxName.value || 'dokumen', 'pdf');
+            if (activeQueueId) {
+                const qItem = mdFileQueue.find(q => q.id === activeQueueId);
+                if (qItem) { qItem.status = 'done'; renderQueue(); }
+            }
         } catch (err) {
             alert('Gagal membuat PDF: ' + err.message);
         } finally {
             generatePdfBtn.disabled = false;
-            generatePdfBtnText.textContent = 'Konversi & Unduh .PDF (A4 Rapi)';
+            if (generatePdfBtnText) generatePdfBtnText.textContent = 'Konversi & Unduh .PDF (A4 Rapi)';
         }
     });
 }
 
+// Export DOCX Button
 if (generateDocxBtn) {
     generateDocxBtn.addEventListener('click', async () => {
-        const text = mdInputArea.value;
+        const text = mdInputArea ? mdInputArea.value : '';
         if (!text.trim()) {
             alert('Silakan masukkan atau upload teks Markdown terlebih dahulu.');
             return;
         }
         generateDocxBtn.disabled = true;
-        generateDocxBtnText.textContent = 'Membuat Dokumen Word...';
+        if (generateDocxBtnText) generateDocxBtnText.textContent = 'Membuat Dokumen Word...';
         try {
             await exportDocument('/md-to-docx', text, targetDocxName.value || 'dokumen', 'docx');
+            if (activeQueueId) {
+                const qItem = mdFileQueue.find(q => q.id === activeQueueId);
+                if (qItem) { qItem.status = 'done'; renderQueue(); }
+            }
         } catch (err) {
             alert('Gagal membuat DOCX: ' + err.message);
         } finally {
             generateDocxBtn.disabled = false;
-            generateDocxBtnText.textContent = 'Konversi & Unduh .DOCX';
+            if (generateDocxBtnText) generateDocxBtnText.textContent = 'Konversi & Unduh .DOCX';
         }
     });
 }
 
+// HTML Print Preview Button
 if (generateHtmlBtn) {
     generateHtmlBtn.addEventListener('click', () => {
-        previewOrDownloadHtml(mdInputArea.value, targetDocxName.value || 'dokumen', false);
+        const text = mdInputArea ? mdInputArea.value : '';
+        previewOrDownloadHtml(text, targetDocxName.value || 'dokumen', true);
     });
 }
 
+// Quick action buttons in editor header
 if (quickPdfBtn) quickPdfBtn.addEventListener('click', () => generatePdfBtn && generatePdfBtn.click());
 if (quickDocxBtn) quickDocxBtn.addEventListener('click', () => generateDocxBtn && generateDocxBtn.click());
 if (quickHtmlBtn) quickHtmlBtn.addEventListener('click', () => generateHtmlBtn && generateHtmlBtn.click());
 
+// Batch Convert Queue Button (.ZIP)
+if (batchConvertQueueBtn) {
+    batchConvertQueueBtn.addEventListener('click', async () => {
+        if (!mdFileQueue || mdFileQueue.length === 0) {
+            alert('Belum ada berkas dalam antrean untuk dikonversi.');
+            return;
+        }
+
+        batchConvertQueueBtn.disabled = true;
+        const origText = batchConvertQueueBtnText ? batchConvertQueueBtnText.textContent : 'Konversi Seluruh Antrean Berkas (.ZIP)';
+        if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = `Mengonversi ${mdFileQueue.length} Berkas ke .DOCX...`;
+
+        try {
+            const payload = {
+                items: mdFileQueue.map(q => ({
+                    filename: q.name,
+                    markdown: q.content,
+                    theme: getSelectedTheme()
+                }))
+            };
+
+            const res = await fetch('/batch-md-to-docx-zip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error(await res.text());
+
+            const blob = await res.blob();
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '_');
+            triggerDownload(blob, `docx_batch_export_${timestamp}.zip`);
+
+            // Mark all items in queue as done
+            mdFileQueue.forEach(q => q.status = 'done');
+            renderQueue();
+        } catch (err) {
+            alert('Gagal mengonversi antrean berkas: ' + err.message);
+        } finally {
+            batchConvertQueueBtn.disabled = false;
+            if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = origText;
+        }
+    });
+}
+
+// YAML Frontmatter Helper
 if (addFrontmatterBtn) {
     addFrontmatterBtn.addEventListener('click', async () => {
-        const text = mdInputArea.value;
+        const text = mdInputArea ? mdInputArea.value : '';
         if (!text || !text.trim()) {
             alert('Silakan ketik atau unggah naskah Markdown terlebih dahulu.');
             return;
@@ -237,6 +530,10 @@ if (addFrontmatterBtn) {
             const data = await res.json();
             if (data && data.markdown) {
                 mdInputArea.value = data.markdown;
+                if (activeQueueId) {
+                    const qItem = mdFileQueue.find(q => q.id === activeQueueId);
+                    if (qItem) qItem.content = data.markdown;
+                }
                 updateMdStats();
             }
         } catch (e) {
@@ -247,65 +544,119 @@ if (addFrontmatterBtn) {
     });
 }
 
+// Template Preset Helper
+function applySampleTemplate(sampleKey) {
+    const sample = window.DOC2MD_SAMPLES && window.DOC2MD_SAMPLES[sampleKey];
+    if (!sample) return;
+
+    // If user currently has active uploaded/edited content and no backup exists yet, stash it!
+    const curText = mdInputArea ? mdInputArea.value : '';
+    if (!userOriginalFile && curText.trim()) {
+        userOriginalFile = {
+            name: (targetDocxName.value.trim() || 'Naskah_Saya') + '.md',
+            content: curText,
+            sizeKb: Math.round(curText.length / 1024 * 10) / 10
+        };
+    }
+
+    isTemplateActive = true;
+    if (templateActiveBadge) templateActiveBadge.classList.remove('hidden');
+    if (restoreUserFileBtn) restoreUserFileBtn.classList.remove('hidden');
+
+    if (targetDocxName) targetDocxName.value = sample.filename;
+    if (mdInputArea) mdInputArea.value = sample.content;
+    if (mdFileSelectedName) {
+        mdFileSelectedName.textContent = `[Template: ${sample.filename}]`;
+        mdFileSelectedName.title = `Template aktif: ${sample.filename}`;
+    }
+
+    updateMdStats();
+}
+
 if (loadSampleReportBtn) {
-    loadSampleReportBtn.addEventListener('click', () => {
-        const sample = window.DOC2MD_SAMPLES && window.DOC2MD_SAMPLES.report;
-        if (!sample) return;
-        targetDocxName.value = sample.filename;
-        mdInputArea.value = sample.content;
-        updateMdStats();
-    });
+    loadSampleReportBtn.addEventListener('click', () => applySampleTemplate('report'));
 }
-
 if (loadSampleProposalBtn) {
-    loadSampleProposalBtn.addEventListener('click', () => {
-        const sample = window.DOC2MD_SAMPLES && window.DOC2MD_SAMPLES.proposal;
-        if (!sample) return;
-        targetDocxName.value = sample.filename;
-        mdInputArea.value = sample.content;
-        updateMdStats();
-    });
+    loadSampleProposalBtn.addEventListener('click', () => applySampleTemplate('proposal'));
 }
-
 if (loadSampleMathDiagramBtn) {
-    loadSampleMathDiagramBtn.addEventListener('click', () => {
-        const sample = window.DOC2MD_SAMPLES && window.DOC2MD_SAMPLES.mathDiagram;
-        if (!sample) return;
-        targetDocxName.value = sample.filename;
-        mdInputArea.value = sample.content;
+    loadSampleMathDiagramBtn.addEventListener('click', () => applySampleTemplate('mathDiagram'));
+}
+
+// Restore Original User File
+if (restoreUserFileBtn) {
+    restoreUserFileBtn.addEventListener('click', () => {
+        if (!userOriginalFile) return;
+
+        if (mdInputArea) mdInputArea.value = userOriginalFile.content;
+        if (targetDocxName) targetDocxName.value = userOriginalFile.name.replace(/\.[^/.]+$/, "");
+        if (mdFileSelectedName) {
+            mdFileSelectedName.textContent = `${userOriginalFile.name} (${userOriginalFile.sizeKb} KB)`;
+            mdFileSelectedName.title = `${userOriginalFile.name} (${userOriginalFile.sizeKb} KB)`;
+        }
+
+        isTemplateActive = false;
+        if (templateActiveBadge) templateActiveBadge.classList.add('hidden');
+        if (restoreUserFileBtn) restoreUserFileBtn.classList.add('hidden');
+
         updateMdStats();
     });
 }
 
+// Dropzone & File Input Events
 if (mdDropzone) {
-    mdDropzone.addEventListener('click', () => mdFileInput && mdFileInput.click());
+    mdDropzone.addEventListener('click', (e) => {
+        if (e.target.closest('input')) return;
+        if (mdFileInput) mdFileInput.click();
+    });
     mdDropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        mdDropzone.classList.add('border-indigo-500');
+        mdDropzone.classList.add('border-indigo-500', 'bg-indigo-950/20');
     });
     mdDropzone.addEventListener('dragleave', () => {
-        mdDropzone.classList.remove('border-indigo-500');
+        mdDropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
     });
     mdDropzone.addEventListener('drop', (e) => {
         e.preventDefault();
-        mdDropzone.classList.remove('border-indigo-500');
-        if (e.dataTransfer.files.length) handleMdFile(e.dataTransfer.files[0]);
+        mdDropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+        if (e.dataTransfer && e.dataTransfer.files.length) {
+            handleMdFiles(e.dataTransfer.files);
+        }
     });
 }
 
 if (mdFileInput) {
     mdFileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleMdFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length) {
+            handleMdFiles(e.target.files);
+        }
     });
 }
 
+// Reset md2doc view state
 window.resetMd2Doc = function() {
+    mdFileQueue = [];
+    activeQueueId = null;
+    userOriginalFile = null;
+    isTemplateActive = false;
+
     if (mdFileInput) mdFileInput.value = '';
-    if (mdFileSelectedName) mdFileSelectedName.textContent = 'Pilih atau seret berkas Markdown (.md)';
+    if (mdFileSelectedName) {
+        mdFileSelectedName.textContent = 'Belum ada file dipilih';
+        mdFileSelectedName.title = 'Belum ada file dipilih';
+    }
+    if (templateActiveBadge) templateActiveBadge.classList.add('hidden');
+    if (restoreUserFileBtn) restoreUserFileBtn.classList.add('hidden');
     if (mdInputArea) mdInputArea.value = '';
-    if (targetDocxName) targetDocxName.value = 'dokumen';
-    if (mdCharCount) mdCharCount.textContent = '0 karakter';
+    if (targetDocxName) targetDocxName.value = 'Dokumen_Hasil_Konversi';
+    if (mdCharCount) mdCharCount.textContent = '0 kar';
     if (mdLineCount) mdLineCount.textContent = '0 baris';
+    if (exportThemeSelect) exportThemeSelect.value = 'modern_slate';
+    if (themeColorBadge) themeColorBadge.style.backgroundColor = THEME_INFO['modern_slate'].color;
+    if (themeDescText) themeDescText.textContent = THEME_INFO['modern_slate'].desc;
+
+    renderQueue();
+
     if (mdLivePreview) {
         mdLivePreview.innerHTML = `
             <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-20">
