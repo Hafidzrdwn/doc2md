@@ -35,10 +35,6 @@ const mdLivePreview = document.getElementById('mdLivePreview');
 const loadSampleReportBtn = document.getElementById('loadSampleReportBtn');
 const loadSampleProposalBtn = document.getElementById('loadSampleProposalBtn');
 const loadSampleMathDiagramBtn = document.getElementById('loadSampleMathDiagramBtn');
-const exportThemeSelect = document.getElementById('exportThemeSelect');
-const themeColorBadge = document.getElementById('themeColorBadge');
-const themeDescText = document.getElementById('themeDescText');
-
 // State Variables
 let mdFileQueue = [];
 let activeQueueId = null;
@@ -52,18 +48,6 @@ const THEME_INFO = {
     'classic_academic': { color: '#475569', desc: 'Tipografi Georgia serif klasik, spasi formal, cocok untuk jurnal ilmiah & makalah.' },
     'emerald_tech': { color: '#059669', desc: 'Aksen Emerald Green kontemporer & font teknis, ideal untuk dokumentasi teknis & API.' }
 };
-
-function getSelectedTheme() {
-    return exportThemeSelect ? exportThemeSelect.value : 'modern_slate';
-}
-
-if (exportThemeSelect) {
-    exportThemeSelect.addEventListener('change', () => {
-        const t = THEME_INFO[exportThemeSelect.value] || THEME_INFO['modern_slate'];
-        if (themeColorBadge) themeColorBadge.style.backgroundColor = t.color;
-        if (themeDescText) themeDescText.textContent = t.desc;
-    });
-}
 
 // Helper to read File as Text with Promise
 function readFileAsText(file) {
