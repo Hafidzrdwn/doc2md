@@ -258,6 +258,18 @@ Hasil file binary eksekutabel akan berada di:
 dist/app/app.exe
 ```
 
+### 📌 Menambahkan Shortcut ke Windows Search & Start Menu
+
+Agar aplikasi dapat dibuka langsung dari Windows Search (menekan tombol `Windows` dan mengetik `Doc2MD`), jalankan skrip PowerShell berikut:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/create_shortcut.ps1
+```
+
+Skrip ini akan otomatis membuat pintasan `Doc2MD.lnk` di:
+- **Start Menu**: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Doc2MD.lnk`
+- **Desktop**: `Doc2MD.lnk` di layar desktop Anda.
+
 ---
 
 ## 📋 Format Dokumen yang Didukung
