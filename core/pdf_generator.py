@@ -184,8 +184,11 @@ def markdown_to_html_document(markdown_text: str, title: str = "Dokumen", theme:
 def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Optional[str] = None) -> bytes:
     """
     Renders Markdown to PDF bytes using an isolated headless Chromium/Edge instance.
-    Guarantees crisp typography and pagination rules without awkward line/table breaks.
+    Guarantees crisp typography, KaTeX rendering, and pagination rules without awkward line/table breaks.
     """
+    from pathlib import Path
+    import time
+
     browser_exe = find_chromium_executable()
     if not browser_exe:
         raise RuntimeError(
@@ -204,15 +207,21 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
                 temp_html = f_html.name
 
             temp_pdf = temp_html.replace(".html", ".pdf")
+            file_url = Path(temp_html).resolve().as_uri()
 
             cmd = [
                 browser_exe,
                 "--headless=new",
                 "--disable-gpu",
-                f"--user-data-dir={user_data_dir}",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
                 "--no-pdf-header-footer",
+                "--enable-local-file-accesses",
+                "--allow-file-access-from-files",
+                f"--user-data-dir={user_data_dir}",
                 f"--print-to-pdf={temp_pdf}",
-                temp_html
+                file_url
             ]
 
             logger.info(f"Generating PDF with command: {' '.join(cmd)}")
@@ -220,18 +229,40 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=60
             )
 
-            if result.returncode != 0:
-                logger.error(f"Chromium headless PDF error (code {result.returncode}): {result.stderr}")
-                cmd[1] = "--headless"
-                result_fallback = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-                if result_fallback.returncode != 0 or not os.path.exists(temp_pdf):
-                    raise RuntimeError(f"Gagal merender PDF via headless browser: {result.stderr or result_fallback.stderr}")
+            # Wait briefly for file handle flush on Windows
+            for _ in range(15):
+                if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
+                    break
+                time.sleep(0.1)
+
+            # Fallback 1: if file is missing or exit code is non-zero, retry with legacy --headless
+            if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0 or result.returncode != 0:
+                logger.warning(f"Headless=new mode did not yield valid PDF (code {result.returncode}). Retrying with legacy --headless...")
+                cmd_fallback = list(cmd)
+                cmd_fallback[1] = "--headless"
+                res_fallback = subprocess.run(cmd_fallback, capture_output=True, text=True, timeout=60)
+                for _ in range(15):
+                    if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
+                        break
+                    time.sleep(0.1)
+
+            # Fallback 2: retry with raw file path instead of URI if still not generated
+            if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
+                logger.warning("Retrying PDF render with direct absolute filesystem path...")
+                cmd_fallback_path = list(cmd)
+                cmd_fallback_path[-1] = temp_html
+                subprocess.run(cmd_fallback_path, capture_output=True, text=True, timeout=60)
+                for _ in range(15):
+                    if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
+                        break
+                    time.sleep(0.1)
 
             if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
-                raise RuntimeError("File PDF hasil render tidak ditemukan atau berukuran 0 byte.")
+                stderr_info = result.stderr if 'result' in locals() and result.stderr else ''
+                raise RuntimeError(f"File PDF hasil render tidak ditemukan atau berukuran 0 byte. {stderr_info.strip()}")
 
             with open(temp_pdf, "rb") as f_pdf:
                 pdf_bytes = f_pdf.read()

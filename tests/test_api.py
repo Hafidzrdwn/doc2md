@@ -138,6 +138,13 @@ def test_batch_md_export_zip_formats():
     with zipfile.ZipFile(io.BytesIO(res_docx.content)) as zf:
         assert "bab1.docx" in zf.namelist()
 
+    # Test format pdf
+    res_pdf = client.post("/batch-md-export-zip", json={"items": items, "format": "pdf"})
+    assert res_pdf.status_code == 200
+    assert "batch_pdf_" in res_pdf.headers["content-disposition"]
+    with zipfile.ZipFile(io.BytesIO(res_pdf.content)) as zf:
+        assert "bab1.pdf" in zf.namelist()
+
     # Test format both
     res_both = client.post("/batch-md-export-zip", json={"items": items, "format": "both"})
     assert res_both.status_code == 200
@@ -146,5 +153,10 @@ def test_batch_md_export_zip_formats():
         names = zf.namelist()
         assert "bab1.docx" in names
         assert "bab1.pdf" in names
+
+    # Test empty markdown items returns 500 error instead of empty zip
+    res_empty = client.post("/batch-md-export-zip", json={"items": [{"filename": "kosong.md", "markdown": "   "}], "format": "pdf"})
+    assert res_empty.status_code == 500
+
 
 

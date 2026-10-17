@@ -181,6 +181,8 @@ async def batch_md_export_zip_endpoint(request: Request):
             return Response(content="Tidak ada berkas yang dipilih untuk dikonversi.", status_code=400)
 
         zip_buffer = io.BytesIO()
+        file_count = 0
+        error_messages = []
         with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
             for idx, item in enumerate(items, 1):
                 raw_filename = item.get("filename", f"dokumen_{idx}")
@@ -192,15 +194,29 @@ async def batch_md_export_zip_endpoint(request: Request):
                 base_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', raw_filename.rsplit('.', 1)[0]) or f"dokumen_{idx}"
 
                 if export_format in ("docx", "both", "all"):
-                    docx_bytes = markdown_to_docx_bytes(md_content, theme=th)
-                    zf.writestr(f"{base_name}.docx", docx_bytes)
+                    try:
+                        docx_bytes = markdown_to_docx_bytes(md_content, theme=th)
+                        zf.writestr(f"{base_name}.docx", docx_bytes)
+                        file_count += 1
+                    except Exception as err:
+                        logger.error(f"Gagal render DOCX untuk {base_name}: {err}")
+                        error_messages.append(f"{base_name} (DOCX): {err}")
 
                 if export_format in ("pdf", "both", "all"):
                     try:
                         pdf_bytes = markdown_to_pdf_bytes(md_content, title=base_name, theme=th)
                         zf.writestr(f"{base_name}.pdf", pdf_bytes)
+                        file_count += 1
                     except Exception as err:
                         logger.error(f"Gagal render PDF untuk {base_name}: {err}")
+                        error_messages.append(f"{base_name} (PDF): {err}")
+
+        if file_count == 0:
+            err_detail = "; ".join(error_messages) if error_messages else "Naskah Markdown kosong atau tidak valid."
+            return Response(
+                content=f"Gagal membuat arsip ZIP: tidak ada dokumen yang berhasil dirender. Rincian: {err_detail}",
+                status_code=500
+            )
 
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         prefix = "batch_export" if export_format in ("both", "all") else f"batch_{export_format}"

@@ -35,6 +35,7 @@
 - **Tabel Multi-Halaman Rapi**: Mendukung `tblHeader` (judul tabel otomatis berulang di halaman baru) dan `cantSplit` (mencegah baris terbelah canggung di pergantian halaman).
 
 ### 6. 🖨️ Precision PDF & Standalone HTML Paged Media Engine
+- **Engine Headless Chromium Ultra-Tangguh**: Menggunakan isolated CLI flags (`--headless=new`, `--no-sandbox`, `--enable-local-file-accesses`, URI formatting) dengan multi-tier fallback otomatis dan sinkronisasi flush I/O Windows untuk menjamin pembuatan PDF selalu berhasil tanpa risiko berkas 0-byte.
 - **Cegah Terpotong (Anti-Cutoff & Smart Page Breaks)**: Didesain dengan aturan CSS Paged Media (`break-inside: avoid` pada tabel, blockquote, callout, dan code block; `break-after: avoid` pada heading H1-H6) agar struktur dokumen tidak pernah terbelah janggal di batas halaman.
 - **Soft-Wrap Code Blocks & Anti-Scrollbar**: Blok kode otomatis melakukan pelipatan kata (`white-space: pre-wrap; word-break: break-word`) tanpa memunculkan scrollbar horizontal statis yang mengganggu saat dicetak atau diekspor ke PDF.
 - **Header Tabel Berulang**: Judul tabel otomatis berulang di setiap halaman cetak baru (`thead { display: table-header-group; }`).
@@ -44,6 +45,7 @@
 
 ### 7. 📦 Batch ZIP Archive Exporter & Manifest
 - **1-Klik Ekspor Massal Fleksibel**: Mengemas seluruh dokumen antrean menjadi satu arsip `.zip` dengan pilihan format output: **Word (.docx)**, **Dokumen (.pdf)**, atau **Keduanya (.docx + .pdf)**.
+- **Proteksi Anti-Empty ZIP**: Validasi integritas arsip otomatis yang memastikan berkas hasil konversi benar-benar tersimpan ke dalam ZIP, mencegah unduhan ZIP kosong, dan menampilkan pesan kesalahan terperinci jika ada dokumen yang gagal dirender.
 - **Inklusi Folder Assets**: Seluruh aset gambar hasil ekstraksi dikemas utuh ke dalam folder `assets/` di dalam ZIP.
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.
