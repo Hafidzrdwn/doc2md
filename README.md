@@ -253,6 +253,11 @@ Aplikasi dapat dikompilasi menjadi paket aplikasi desktop mandiri tanpa memerluk
 pyinstaller --noconfirm app.spec
 ```
 
+Atau jika error atau gagal, jalankan yang di bawah ini:
+```bash
+.\.venv\Scripts\pyinstaller --noconfirm app.spec
+```
+
 Hasil file binary eksekutabel akan berada di:
 ```text
 dist/app/app.exe
