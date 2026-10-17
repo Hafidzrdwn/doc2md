@@ -200,74 +200,86 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
 
     temp_html = None
     temp_pdf = None
+    user_data_dir = None
     try:
-        with tempfile.TemporaryDirectory() as user_data_dir:
-            with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as f_html:
-                f_html.write(html_content)
-                temp_html = f_html.name
+        user_data_dir = tempfile.mkdtemp(prefix="doc2md_chrome_")
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as f_html:
+            f_html.write(html_content)
+            temp_html = f_html.name
 
-            temp_pdf = temp_html.replace(".html", ".pdf")
-            file_url = Path(temp_html).resolve().as_uri()
+        temp_pdf = temp_html.replace(".html", ".pdf")
+        file_url = Path(temp_html).resolve().as_uri()
 
-            cmd = [
-                browser_exe,
-                "--headless=new",
-                "--disable-gpu",
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--no-pdf-header-footer",
-                "--enable-local-file-accesses",
-                "--allow-file-access-from-files",
-                f"--user-data-dir={user_data_dir}",
-                f"--print-to-pdf={temp_pdf}",
-                file_url
-            ]
+        cmd = [
+            browser_exe,
+            "--headless=new",
+            "--disable-gpu",
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--no-pdf-header-footer",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--disable-background-timer-throttling",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-breakpad",
+            "--disable-component-update",
+            "--disable-sync",
+            "--disable-extensions",
+            "--disable-default-apps",
+            "--metrics-recording-only",
+            "--enable-local-file-accesses",
+            "--allow-file-access-from-files",
+            f"--user-data-dir={user_data_dir}",
+            f"--print-to-pdf={temp_pdf}",
+            file_url
+        ]
 
-            logger.info(f"Generating PDF with command: {' '.join(cmd)}")
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+        logger.info(f"Generating PDF with command: {' '.join(cmd)}")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
 
-            # Wait briefly for file handle flush on Windows
-            for _ in range(15):
+        # Wait briefly for file handle flush on Windows
+        for _ in range(20):
+            if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
+                break
+            time.sleep(0.1)
+
+        # Fallback 1: if file is missing or exit code is non-zero, retry with legacy --headless
+        if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0 or result.returncode != 0:
+            logger.warning(f"Headless=new mode did not yield valid PDF (code {result.returncode}). Retrying with legacy --headless...")
+            cmd_fallback = list(cmd)
+            cmd_fallback[1] = "--headless"
+            res_fallback = subprocess.run(cmd_fallback, capture_output=True, text=True, timeout=60)
+            for _ in range(20):
                 if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
                     break
                 time.sleep(0.1)
 
-            # Fallback 1: if file is missing or exit code is non-zero, retry with legacy --headless
-            if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0 or result.returncode != 0:
-                logger.warning(f"Headless=new mode did not yield valid PDF (code {result.returncode}). Retrying with legacy --headless...")
-                cmd_fallback = list(cmd)
-                cmd_fallback[1] = "--headless"
-                res_fallback = subprocess.run(cmd_fallback, capture_output=True, text=True, timeout=60)
-                for _ in range(15):
-                    if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
-                        break
-                    time.sleep(0.1)
+        # Fallback 2: retry with raw file path instead of URI if still not generated
+        if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
+            logger.warning("Retrying PDF render with direct absolute filesystem path...")
+            cmd_fallback_path = list(cmd)
+            cmd_fallback_path[-1] = temp_html
+            subprocess.run(cmd_fallback_path, capture_output=True, text=True, timeout=60)
+            for _ in range(20):
+                if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
+                    break
+                time.sleep(0.1)
 
-            # Fallback 2: retry with raw file path instead of URI if still not generated
-            if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
-                logger.warning("Retrying PDF render with direct absolute filesystem path...")
-                cmd_fallback_path = list(cmd)
-                cmd_fallback_path[-1] = temp_html
-                subprocess.run(cmd_fallback_path, capture_output=True, text=True, timeout=60)
-                for _ in range(15):
-                    if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
-                        break
-                    time.sleep(0.1)
+        if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
+            stderr_info = result.stderr if 'result' in locals() and result.stderr else ''
+            raise RuntimeError(f"File PDF hasil render tidak ditemukan atau berukuran 0 byte. {stderr_info.strip()}")
 
-            if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
-                stderr_info = result.stderr if 'result' in locals() and result.stderr else ''
-                raise RuntimeError(f"File PDF hasil render tidak ditemukan atau berukuran 0 byte. {stderr_info.strip()}")
+        with open(temp_pdf, "rb") as f_pdf:
+            pdf_bytes = f_pdf.read()
 
-            with open(temp_pdf, "rb") as f_pdf:
-                pdf_bytes = f_pdf.read()
-
-            return pdf_bytes
+        return pdf_bytes
 
     finally:
         if temp_html and os.path.exists(temp_html):
@@ -278,5 +290,14 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
         if temp_pdf and os.path.exists(temp_pdf):
             try:
                 os.remove(temp_pdf)
+            except Exception:
+                pass
+        if user_data_dir and os.path.exists(user_data_dir):
+            try:
+                import shutil
+                shutil.rmtree(user_data_dir, ignore_errors=True)
+                if os.path.exists(user_data_dir):
+                    time.sleep(0.1)
+                    shutil.rmtree(user_data_dir, ignore_errors=True)
             except Exception:
                 pass
