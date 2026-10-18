@@ -150,13 +150,13 @@ function renderFileCards() {
         const imgTag = (item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans">🖼️ ${item.images_count}</span>` : '';
 
         card.innerHTML = `<div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2 overflow-hidden">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono">${ext}</span>
-                <span class="text-xs font-semibold text-slate-200 truncate" title="${item.filename}">${item.filename}</span>
+            <div class="flex items-start gap-2 min-w-0 flex-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-sky-400 border border-slate-700 shrink-0 font-mono mt-0.5">${ext}</span>
+                <span class="text-xs font-semibold text-slate-200 break-all leading-snug" title="${item.filename}">${item.filename}</span>
             </div>
-            <button class="remove-btn text-slate-500 hover:text-rose-400 transition p-0.5 rounded" title="Hapus file ini" data-idx="${idx}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <button class="remove-btn text-slate-500 hover:text-rose-400 transition p-0.5 rounded shrink-0" title="Hapus file ini" data-idx="${idx}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
         </div>
-        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-1">
             <span>${item.raw_size_kb} KB</span>
             <div class="flex items-center gap-1.5">${ocrTag}${imgTag}<span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span></div>
         </div>`;

@@ -92,7 +92,7 @@ function renderQueue() {
     mdFileQueue.forEach((item) => {
         const isActive = (item.id === activeQueueId);
         const row = document.createElement('div');
-        row.className = `flex items-center justify-between p-2 rounded-lg border text-xs transition cursor-pointer ${
+        row.className = `flex items-start justify-between gap-2.5 p-2.5 rounded-lg border text-xs transition cursor-pointer ${
             isActive ? 'bg-sky-950/50 border-sky-600/60 shadow-sm' : 'bg-slate-900/60 border-slate-800 hover:bg-slate-900 hover:border-slate-700'
         }`;
 
@@ -104,12 +104,14 @@ function renderQueue() {
         }
 
         row.innerHTML = `
-            <div class="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-                ${statusDot}
-                <span class="truncate font-mono ${isActive ? 'text-sky-300 font-semibold' : 'text-slate-300'}" title="${item.name}">${item.name}</span>
-                <span class="text-[10px] text-slate-500 font-mono shrink-0">${item.sizeKb} KB</span>
+            <div class="flex items-start gap-2 min-w-0 flex-1">
+                <span class="mt-1 shrink-0">${statusDot}</span>
+                <div class="flex flex-col min-w-0 flex-1">
+                    <span class="break-all font-mono leading-snug ${isActive ? 'text-sky-300 font-semibold' : 'text-slate-300'}" title="${item.name}">${item.name}</span>
+                    <span class="text-[10px] text-slate-500 font-mono mt-0.5">${item.sizeKb} KB</span>
+                </div>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+            <div class="flex items-center gap-1.5 shrink-0 ml-2 mt-0.5">
                 <button class="export-single-docx px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/60 transition" title="Unduh DOCX file ini">DOCX</button>
                 <button class="export-single-pdf px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60 transition" title="Unduh PDF file ini">PDF</button>
                 <button class="remove-queue-item p-1 text-slate-500 hover:text-rose-400 rounded transition" title="Hapus dari antrean">

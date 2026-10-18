@@ -111,15 +111,15 @@ window.Doc2MDProgress = {
 
         if (els.stepText) {
             els.stepText.innerHTML = `
-                <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-ping shrink-0"></span>
-                <span class="truncate">${escapeHtml(options.step || 'Menghubungkan ke engine...')}</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-ping shrink-0 mt-1"></span>
+                <span class="break-words leading-relaxed">${escapeHtml(options.step || 'Menghubungkan ke engine...')}</span>
             `;
         }
 
         if (els.footerTip) {
             els.footerTip.innerHTML = `
-                <span>⚡</span>
-                <span class="truncate">${escapeHtml(options.tip || 'Engine headless Chromium & KaTeX sedang memproses dokumen offline.')}</span>
+                <span class="shrink-0 mt-0.5">⚡</span>
+                <span class="break-words leading-relaxed">${escapeHtml(options.tip || 'Engine headless Chromium & KaTeX sedang memproses dokumen offline.')}</span>
             `;
         }
 
@@ -131,13 +131,13 @@ window.Doc2MDProgress = {
                 const name = typeof item === 'string' ? item : (item.name || `Berkas ${idx + 1}`);
                 const row = document.createElement('div');
                 row.id = `progressModalItemRow_${idx}`;
-                row.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 text-[11px]';
+                row.className = 'flex items-start justify-between gap-2.5 p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 text-[11px]';
                 row.innerHTML = `
-                    <div class="flex items-center gap-2 min-w-0 flex-1">
-                        <span id="progressItemIcon_${idx}" class="w-2 h-2 rounded-full bg-slate-600 shrink-0"></span>
-                        <span class="truncate font-mono text-slate-300" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+                    <div class="flex items-start gap-2 min-w-0 flex-1">
+                        <span id="progressItemIcon_${idx}" class="w-2 h-2 rounded-full bg-slate-600 shrink-0 mt-1"></span>
+                        <span class="break-all font-mono text-slate-300 leading-snug" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
                     </div>
-                    <span id="progressItemBadge_${idx}" class="text-[10px] font-mono px-1.5 py-0.5 rounded text-slate-500 bg-slate-900 border border-slate-800 shrink-0 ml-2">
+                    <span id="progressItemBadge_${idx}" class="text-[10px] font-mono px-1.5 py-0.5 rounded text-slate-500 bg-slate-900 border border-slate-800 shrink-0 ml-2 mt-0.5">
                         Menunggu
                     </span>
                 `;
@@ -194,8 +194,8 @@ window.Doc2MDProgress = {
 
         if (step && els.stepText) {
             els.stepText.innerHTML = `
-                <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-ping shrink-0"></span>
-                <span class="truncate">${escapeHtml(step)}</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-ping shrink-0 mt-1"></span>
+                <span class="break-words leading-relaxed">${escapeHtml(step)}</span>
             `;
         }
 
@@ -223,24 +223,24 @@ window.Doc2MDProgress = {
         if (!row || !badge) return;
 
         if (status === 'processing') {
-            row.className = 'flex items-center justify-between p-2 rounded-lg bg-sky-950/40 border border-sky-500/40 text-[11px] shadow-sm';
-            if (icon) icon.className = 'w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0';
-            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-sky-300 bg-sky-950/80 border border-sky-800/80 shrink-0 ml-2 animate-pulse';
+            row.className = 'flex items-start justify-between gap-2.5 p-2 rounded-lg bg-sky-950/40 border border-sky-500/40 text-[11px] shadow-sm';
+            if (icon) icon.className = 'w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0 mt-1';
+            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-sky-300 bg-sky-950/80 border border-sky-800/80 shrink-0 ml-2 mt-0.5 animate-pulse';
             badge.textContent = message || 'Merender...';
         } else if (status === 'success') {
-            row.className = 'flex items-center justify-between p-2 rounded-lg bg-emerald-950/20 border border-emerald-600/30 text-[11px]';
-            if (icon) icon.className = 'w-2 h-2 rounded-full bg-emerald-400 shrink-0';
-            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-emerald-300 bg-emerald-950/80 border border-emerald-800/80 shrink-0 ml-2';
+            row.className = 'flex items-start justify-between gap-2.5 p-2 rounded-lg bg-emerald-950/20 border border-emerald-600/30 text-[11px]';
+            if (icon) icon.className = 'w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1';
+            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-emerald-300 bg-emerald-950/80 border border-emerald-800/80 shrink-0 ml-2 mt-0.5';
             badge.textContent = message || '✓ Selesai';
         } else if (status === 'error') {
-            row.className = 'flex items-center justify-between p-2 rounded-lg bg-rose-950/20 border border-rose-600/30 text-[11px]';
-            if (icon) icon.className = 'w-2 h-2 rounded-full bg-rose-400 shrink-0';
-            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-rose-300 bg-rose-950/80 border border-rose-800/80 shrink-0 ml-2';
+            row.className = 'flex items-start justify-between gap-2.5 p-2 rounded-lg bg-rose-950/20 border border-rose-600/30 text-[11px]';
+            if (icon) icon.className = 'w-2 h-2 rounded-full bg-rose-400 shrink-0 mt-1';
+            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-rose-300 bg-rose-950/80 border border-rose-800/80 shrink-0 ml-2 mt-0.5';
             badge.textContent = message || '⚠ Kendala';
         } else if (status === 'skip') {
-            row.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-900/40 border border-slate-800 text-[11px] opacity-60';
-            if (icon) icon.className = 'w-2 h-2 rounded-full bg-slate-500 shrink-0';
-            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-slate-400 bg-slate-900 border border-slate-800 shrink-0 ml-2';
+            row.className = 'flex items-start justify-between gap-2.5 p-2 rounded-lg bg-slate-900/40 border border-slate-800 text-[11px] opacity-60';
+            if (icon) icon.className = 'w-2 h-2 rounded-full bg-slate-500 shrink-0 mt-1';
+            badge.className = 'text-[10px] font-mono px-1.5 py-0.5 rounded text-slate-400 bg-slate-900 border border-slate-800 shrink-0 ml-2 mt-0.5';
             badge.textContent = message || 'Dilewati';
         }
     },
@@ -267,8 +267,8 @@ window.Doc2MDProgress = {
 
         if (els.stepText) {
             els.stepText.innerHTML = `
-                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
-                <span class="text-emerald-300 font-semibold truncate">${escapeHtml(options.message || 'Proses selesai! Berkas berhasil diunduh.')}</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1"></span>
+                <span class="text-emerald-300 font-semibold break-words leading-relaxed">${escapeHtml(options.message || 'Proses selesai! Berkas berhasil diunduh.')}</span>
             `;
         }
 
@@ -296,8 +296,8 @@ window.Doc2MDProgress = {
 
         if (els.stepText) {
             els.stepText.innerHTML = `
-                <span class="inline-block w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>
-                <span class="text-rose-300 font-semibold truncate">${escapeHtml(options.message || 'Terjadi kesalahan saat memproses.')}</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-rose-400 shrink-0 mt-1"></span>
+                <span class="text-rose-300 font-semibold break-words leading-relaxed">${escapeHtml(options.message || 'Terjadi kesalahan saat memproses.')}</span>
             `;
         }
     },
