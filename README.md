@@ -46,7 +46,9 @@
 
 ### 7. 📦 Batch ZIP Archive Exporter & Manifest
 - **1-Klik Ekspor Massal Fleksibel**: Mengemas seluruh dokumen antrean menjadi satu arsip `.zip` dengan pilihan format output: **Word (.docx)**, **Dokumen (.pdf)**, atau **Keduanya (.docx + .pdf)**.
-- **Proteksi Anti-Empty ZIP**: Validasi integritas arsip otomatis yang memastikan berkas hasil konversi benar-benar tersimpan ke dalam ZIP, mencegah unduhan ZIP kosong, dan menampilkan pesan kesalahan terperinci jika ada dokumen yang gagal dirender.
+- **Proteksi Anti-Empty ZIP & Anti-Collision**: Validasi integritas arsip otomatis yang memastikan berkas hasil konversi benar-benar tersimpan ke dalam ZIP, serta sistem penomoran unik otomatis (`nama.pdf`, `nama_1.pdf`) yang mencegah berkas saling menimpa (*overwrite*) di dalam arsip jika terdapat nama yang sama.
+- **Sinkronisasi Antrean & Preservasi Naskah**: Sinkronisasi dua arah instan antara editor aktif dengan antrean berkas, termasuk preservasi otomatis naskah editor sebagai dokumen pertama saat berkas baru ditambahkan ke antrean kosong.
+- **Laporan Transparansi Konversi**: Jika terdapat dokumen yang mengalami kendala saat batch render, arsip ZIP secara otomatis menyertakan berkas `CATATAN_KENDALA_KONVERSI.txt` serta notifikasi visual pada antarmuka agar pengguna mengetahui status setiap berkas secara transparan.
 - **Inklusi Folder Assets**: Seluruh aset gambar hasil ekstraksi dikemas utuh ke dalam folder `assets/` di dalam ZIP.
 - **Hierarki Folder Chunks**: Jika dokumen dipecah oleh fitur chunking token, masing-masing part dokumen ditempatkan secara otomatis dalam subfolder khusus (`<nama_dokumen>_chunks/part_XX.md`).
 - **Manifest SUMMARY.md Otomatis**: Memuat ringkasan waktu konversi, daftar file, serta metrik token dan karakter per dokumen.

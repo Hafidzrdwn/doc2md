@@ -152,6 +152,18 @@ function renderQueue() {
 }
 
 function selectQueueItem(id) {
+    // Before switching, sync current item with editor text and target name
+    if (activeQueueId && activeQueueId !== id) {
+        const curActive = mdFileQueue.find(q => q.id === activeQueueId);
+        if (curActive) {
+            if (mdInputArea) curActive.content = mdInputArea.value;
+            if (targetDocxName && targetDocxName.value.trim()) {
+                const customName = targetDocxName.value.trim();
+                curActive.name = customName.endsWith('.md') ? customName : `${customName}.md`;
+            }
+        }
+    }
+
     const item = mdFileQueue.find(q => q.id === id);
     if (!item) return;
 
@@ -214,6 +226,23 @@ async function handleMdFiles(fileList) {
         return;
     }
 
+    // Preserve existing editor content as item 1 if queue is currently empty and editor has text
+    if (mdFileQueue.length === 0 && !activeQueueId && mdInputArea && mdInputArea.value.trim().length > 0) {
+        const existingName = (targetDocxName && targetDocxName.value.trim()) ? targetDocxName.value.trim() : 'Naskah_Awal';
+        const docName = existingName.endsWith('.md') ? existingName : `${existingName}.md`;
+        const existingContent = mdInputArea.value;
+        const existingSizeKb = Math.round(existingContent.length / 1024 * 10) / 10;
+        mdFileQueue.push({
+            id: 'queue_' + Date.now() + '_init',
+            file: null,
+            name: docName,
+            sizeKb: existingSizeKb,
+            content: existingContent,
+            status: 'ready'
+        });
+        activeQueueId = mdFileQueue[0].id;
+    }
+
     const availableSlots = 10 - mdFileQueue.length;
     if (availableSlots <= 0) {
         alert('Antrean sudah mencapai batas maksimum (10 berkas). Hapus berkas sebelum menambahkan yang baru.');
@@ -260,6 +289,25 @@ if (mdInputArea) {
             if (curItem) curItem.content = mdInputArea.value;
         }
         updateMdStats();
+    });
+}
+
+if (targetDocxName) {
+    targetDocxName.addEventListener('input', () => {
+        if (activeQueueId) {
+            const curItem = mdFileQueue.find(q => q.id === activeQueueId);
+            if (curItem) {
+                const val = targetDocxName.value.trim();
+                if (val) {
+                    curItem.name = val.endsWith('.md') ? val : `${val}.md`;
+                    if (mdFileSelectedName) {
+                        mdFileSelectedName.textContent = `${curItem.name} (${curItem.sizeKb} KB)`;
+                        mdFileSelectedName.title = `${curItem.name} (${curItem.sizeKb} KB)`;
+                    }
+                    renderQueue();
+                }
+            }
+        }
     });
 }
 
@@ -474,10 +522,22 @@ if (batchConvertQueueBtn) {
         if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = `Mengonversi ${mdFileQueue.length} Berkas ke ${formatLabel}...`;
 
         try {
+            // Sync active item before building payload
+            if (activeQueueId && mdInputArea) {
+                const curItem = mdFileQueue.find(q => q.id === activeQueueId);
+                if (curItem) {
+                    curItem.content = mdInputArea.value;
+                    if (targetDocxName && targetDocxName.value.trim()) {
+                        const val = targetDocxName.value.trim();
+                        curItem.name = val.endsWith('.md') ? val : `${val}.md`;
+                    }
+                }
+            }
+
             const payload = {
                 format: selectedFormat,
-                items: mdFileQueue.map(q => ({
-                    filename: q.name,
+                items: mdFileQueue.map((q, idx) => ({
+                    filename: q.name || `dokumen_${idx + 1}.md`,
                     markdown: q.content,
                     theme: getSelectedTheme()
                 }))
@@ -495,6 +555,11 @@ if (batchConvertQueueBtn) {
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '_');
             const filePrefix = selectedFormat === 'both' ? 'batch_export' : `batch_${selectedFormat}`;
             triggerDownload(blob, `${filePrefix}_${timestamp}.zip`);
+
+            const warnings = res.headers.get('X-Conversion-Warnings');
+            if (warnings) {
+                alert(`Arsip ZIP berhasil diunduh, namun terdapat catatan kendala pada sebagian berkas:\n\n${warnings}\n\nPeriksa berkas CATATAN_KENDALA_KONVERSI.txt di dalam ZIP untuk rincian.`);
+            }
 
             // Mark all items in queue as done
             mdFileQueue.forEach(q => q.status = 'done');

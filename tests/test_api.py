@@ -145,14 +145,19 @@ def test_batch_md_export_zip_formats():
     with zipfile.ZipFile(io.BytesIO(res_pdf.content)) as zf:
         assert "bab1.pdf" in zf.namelist()
 
-    # Test format both
-    res_both = client.post("/batch-md-export-zip", json={"items": items, "format": "both"})
-    assert res_both.status_code == 200
-    assert "batch_export_" in res_both.headers["content-disposition"]
-    with zipfile.ZipFile(io.BytesIO(res_both.content)) as zf:
+    # Test format both with duplicate filename deduplication
+    items_dup = [
+        {"filename": "bab1.md", "markdown": "# Bab 1 Asli", "theme": "modern_slate"},
+        {"filename": "bab1.md", "markdown": "# Bab 1 Salinan", "theme": "modern_slate"}
+    ]
+    res_dup = client.post("/batch-md-export-zip", json={"items": items_dup, "format": "both"})
+    assert res_dup.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(res_dup.content)) as zf:
         names = zf.namelist()
         assert "bab1.docx" in names
+        assert "bab1_1.docx" in names
         assert "bab1.pdf" in names
+        assert "bab1_1.pdf" in names
 
     # Test empty markdown items returns 500 error instead of empty zip
     res_empty = client.post("/batch-md-export-zip", json={"items": [{"filename": "kosong.md", "markdown": "   "}], "format": "pdf"})

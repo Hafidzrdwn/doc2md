@@ -183,6 +183,8 @@ async def batch_md_export_zip_endpoint(request: Request):
         zip_buffer = io.BytesIO()
         file_count = 0
         error_messages = []
+        used_filenames = set()
+
         with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
             for idx, item in enumerate(items, 1):
                 raw_filename = item.get("filename", f"dokumen_{idx}")
@@ -194,22 +196,47 @@ async def batch_md_export_zip_endpoint(request: Request):
                 base_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', raw_filename.rsplit('.', 1)[0]) or f"dokumen_{idx}"
 
                 if export_format in ("docx", "both", "all"):
+                    candidate_docx = f"{base_name}.docx"
+                    c = 1
+                    while candidate_docx in used_filenames:
+                        candidate_docx = f"{base_name}_{c}.docx"
+                        c += 1
                     try:
                         docx_bytes = markdown_to_docx_bytes(md_content, theme=th)
-                        zf.writestr(f"{base_name}.docx", docx_bytes)
+                        zf.writestr(candidate_docx, docx_bytes)
+                        used_filenames.add(candidate_docx)
                         file_count += 1
                     except Exception as err:
-                        logger.error(f"Gagal render DOCX untuk {base_name}: {err}")
-                        error_messages.append(f"{base_name} (DOCX): {err}")
+                        logger.error(f"Gagal render DOCX untuk {raw_filename}: {err}")
+                        error_messages.append(f"{raw_filename} (DOCX): {err}")
 
                 if export_format in ("pdf", "both", "all"):
+                    candidate_pdf = f"{base_name}.pdf"
+                    c = 1
+                    while candidate_pdf in used_filenames:
+                        candidate_pdf = f"{base_name}_{c}.pdf"
+                        c += 1
                     try:
                         pdf_bytes = markdown_to_pdf_bytes(md_content, title=base_name, theme=th)
-                        zf.writestr(f"{base_name}.pdf", pdf_bytes)
+                        zf.writestr(candidate_pdf, pdf_bytes)
+                        used_filenames.add(candidate_pdf)
                         file_count += 1
                     except Exception as err:
-                        logger.error(f"Gagal render PDF untuk {base_name}: {err}")
-                        error_messages.append(f"{base_name} (PDF): {err}")
+                        logger.error(f"Gagal render PDF untuk {raw_filename}: {err}")
+                        error_messages.append(f"{raw_filename} (PDF): {err}")
+
+            if error_messages:
+                warning_report = (
+                    "Doc2MD - Laporan Catatan Konversi Berkas\n"
+                    "========================================\n\n"
+                    f"Waktu: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                    f"Total berkas dalam antrean: {len(items)}\n"
+                    f"Total dokumen berhasil dikemas: {file_count}\n\n"
+                    "Rincian berkas yang mengalami kendala:\n"
+                    + "\n".join(f"- {msg}" for msg in error_messages)
+                    + "\n\nSilakan periksa naskah Markdown di atas atau log server."
+                )
+                zf.writestr("CATATAN_KENDALA_KONVERSI.txt", warning_report.encode("utf-8"))
 
         if file_count == 0:
             err_detail = "; ".join(error_messages) if error_messages else "Naskah Markdown kosong atau tidak valid."
@@ -220,10 +247,16 @@ async def batch_md_export_zip_endpoint(request: Request):
 
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         prefix = "batch_export" if export_format in ("both", "all") else f"batch_{export_format}"
+        headers = {
+            "Content-Disposition": f'attachment; filename="{prefix}_{timestamp_str}.zip"'
+        }
+        if error_messages:
+            headers["X-Conversion-Warnings"] = "; ".join(error_messages)
+
         return Response(
             content=zip_buffer.getvalue(),
             media_type="application/zip",
-            headers={"Content-Disposition": f'attachment; filename="{prefix}_{timestamp_str}.zip"'}
+            headers=headers
         )
     except Exception as exc:
         logger.error(f"Gagal membuat batch arsip: {exc}", exc_info=True)
