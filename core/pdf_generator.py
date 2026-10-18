@@ -5,6 +5,7 @@ Delegates styling and Chromium discovery to .pdf_styles.
 
 import logging
 import os
+import sys
 import subprocess
 import tempfile
 from typing import Optional
@@ -69,9 +70,21 @@ def get_markdown_converter() -> markdown.Markdown:
 
 def _get_base_dir() -> str:
     import sys
+    candidates = []
     if getattr(sys, 'frozen', False):
-        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if hasattr(sys, '_MEIPASS') and sys._MEIPASS:
+            candidates.append(str(sys._MEIPASS))
+        exe_dir = os.path.dirname(sys.executable)
+        candidates.append(os.path.join(exe_dir, "_internal"))
+        candidates.append(exe_dir)
+    else:
+        candidates.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+        candidates.append(os.getcwd())
+
+    for c in candidates:
+        if c and os.path.exists(os.path.join(c, "static", "vendor", "katex", "katex.min.css")):
+            return str(c)
+    return str(candidates[0]) if candidates else os.getcwd()
 
 
 _katex_assets_cache = None
@@ -82,11 +95,13 @@ def _get_katex_html_head() -> str:
     if _katex_assets_cache is not None:
         return _katex_assets_cache
 
+    from pathlib import Path
     base_dir = _get_base_dir()
     vendor_dir = os.path.join(base_dir, "static", "vendor", "katex")
     css_path = os.path.join(vendor_dir, "katex.min.css")
     js_path = os.path.join(vendor_dir, "katex.min.js")
     auto_js_path = os.path.join(vendor_dir, "auto-render.min.js")
+    fonts_dir = os.path.join(vendor_dir, "fonts")
 
     if os.path.exists(css_path) and os.path.exists(js_path) and os.path.exists(auto_js_path):
         try:
@@ -96,6 +111,14 @@ def _get_katex_html_head() -> str:
                 js_data = f.read()
             with open(auto_js_path, "r", encoding="utf-8") as f:
                 auto_js_data = f.read()
+
+            # Ensure local font references point to absolute file URIs for offline rendering
+            if os.path.exists(fonts_dir):
+                fonts_uri = Path(fonts_dir).resolve().as_uri()
+                css_data = css_data.replace("url(fonts/", f"url({fonts_uri}/")
+                css_data = css_data.replace('url("fonts/', f'url("{fonts_uri}/')
+                css_data = css_data.replace("url('fonts/", f"url('{fonts_uri}/")
+
             _katex_assets_cache = f"""
     <style>{css_data}</style>
     <script>{js_data}</script>
@@ -220,6 +243,8 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
             "--no-pdf-header-footer",
             "--no-first-run",
             "--no-default-browser-check",
+            "--disable-software-rasterizer",
+            "--run-all-compositor-stages-before-draw",
             "--disable-background-networking",
             "--disable-background-timer-throttling",
             "--disable-backgrounding-occluded-windows",
@@ -236,16 +261,19 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
             file_url
         ]
 
+        sub_kwargs = {
+            "capture_output": True,
+            "text": True,
+            "timeout": 90,
+        }
+        if sys.platform == "win32":
+            sub_kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+
         logger.info(f"Generating PDF with command: {' '.join(cmd)}")
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+        result = subprocess.run(cmd, **sub_kwargs)
 
         # Wait briefly for file handle flush on Windows
-        for _ in range(20):
+        for _ in range(25):
             if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
                 break
             time.sleep(0.1)
@@ -255,8 +283,8 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
             logger.warning(f"Headless=new mode did not yield valid PDF (code {result.returncode}). Retrying with legacy --headless...")
             cmd_fallback = list(cmd)
             cmd_fallback[1] = "--headless"
-            res_fallback = subprocess.run(cmd_fallback, capture_output=True, text=True, timeout=60)
-            for _ in range(20):
+            res_fallback = subprocess.run(cmd_fallback, **sub_kwargs)
+            for _ in range(25):
                 if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
                     break
                 time.sleep(0.1)
@@ -266,15 +294,17 @@ def markdown_to_pdf_bytes(markdown_text: str, title: str = "Dokumen", theme: Opt
             logger.warning("Retrying PDF render with direct absolute filesystem path...")
             cmd_fallback_path = list(cmd)
             cmd_fallback_path[-1] = temp_html
-            subprocess.run(cmd_fallback_path, capture_output=True, text=True, timeout=60)
-            for _ in range(20):
+            subprocess.run(cmd_fallback_path, **sub_kwargs)
+            for _ in range(25):
                 if os.path.exists(temp_pdf) and os.path.getsize(temp_pdf) > 0:
                     break
                 time.sleep(0.1)
 
         if not os.path.exists(temp_pdf) or os.path.getsize(temp_pdf) == 0:
-            stderr_info = result.stderr if 'result' in locals() and result.stderr else ''
-            raise RuntimeError(f"File PDF hasil render tidak ditemukan atau berukuran 0 byte. {stderr_info.strip()}")
+            stderr_info = ""
+            if 'result' in locals() and result:
+                stderr_info = f"Kode keluar: {result.returncode}. {result.stderr or ''}".strip()
+            raise RuntimeError(f"File PDF hasil render tidak ditemukan atau berukuran 0 byte. {stderr_info}".strip())
 
         with open(temp_pdf, "rb") as f_pdf:
             pdf_bytes = f_pdf.read()
