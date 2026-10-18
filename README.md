@@ -102,21 +102,28 @@
 - **Analisis Delta Token & Karakter**: Mengukur persentase kemiripan dokumen (*similarity ratio*), delta token OpenAI `tiktoken`, penambahan/pengurangan baris teks, serta selisih karakter secara akurat.
 - **Integrasi UI & File Upload**: Dilengkapi tab *Document Diff*, opsi swap dokumen instan, pemuat contoh revisi dokumen, serta upload berkas multi-format untuk komparasi langsung.
 
-### 14. 🧭 Modern Sidebar Navigation & Smart Contextual Reset
+### 14. ⏳ Real-Time Progress Loading Modal & Download Percentage UX
+- **Modal Glassmorphism Gelap Bernilai Estetika Tinggi**: Menggantikan status tombol pasif dengan pop-up modal modern (*dark glassmorphism backdrop-blur*), ambient glow, spinner animasi, badge status dinamis, dan tip panduan engine.
+- **Indikator Persentase & Track Bar Real-Time**: Animasi gradien shimmer yang bergerak mulus dari `0%` hingga `100%`, dilengkapi teks persentase tebal dan deskripsi tahapan proses (misal: pengiriman naskah, render KaTeX/Mermaid, kompilasi dokumen Word, hingga pengunduhan berkas).
+- **Streaming NDJSON untuk Batch Antrean**: Endpoint `POST /batch-md-export-stream` memancarkan stream event per berkas secara real-time (`start`, `item_start`, `item_done`, `packaging`, `complete`) yang menggerakkan daftar checklist interaktif dengan ikon status live (`⏳ Merender...`, `✓ Selesai`, `⚠ Kendala`).
+- **Tokenized Temporary Download**: Pengunduhan arsip batch `.ZIP` memanfaatkan token sesi satu kali unduh via `GET /download-batch-temp/{token}` sehingga browser memicu dialog unduhan secara otomatis tanpa memblokir thread antarmuka.
+- **Timer Penghitung Waktu Nyata**: Menghitung durasi pemrosesan secara presisi (`00:00`), memberikan kepastian dan ketenangan kepada pengguna saat memproses dokumen berukuran besar.
+
+### 15. 🧭 Modern Sidebar Navigation & Smart Contextual Reset
 - **Navigasi Sidebar Vertikal Elegan**: Menggantikan navbar horizontal atas yang sesak dengan Sidebar modern di sisi kiri, memberikan 100% ruang kerja horizontal yang luas dan lega pada area kerja utama.
 - **Smart Contextual Reset System**: Fitur reset cerdas yang mengenali halaman aktif secara otomatis:
   - *Reset Halaman Aktif*: Hanya membersihkan formulir dan antrean tab yang sedang dibuka (Doc ➔ MD, Editor MD, Folder Watcher, atau Diff Viewer) tanpa menghapus data tab lainnya.
   - *Reset Semua (Global)*: Opsi pembersihan total seluruh sesi aplikasi ke kondisi awal pabrik dengan konfirmasi aman.
 - **Resilient Fallback Preview & Print**: Mekanisme render dokumen HTML dan PDF yang terlindungi dari error dependensi pihak ketiga, serta tombol *Preview Cetak* yang langsung membuka tab interaktif.
 
-### 15. 🚀 Multi-File Markdown Queue & Workspace Polish
+### 16. 🚀 Multi-File Markdown Queue & Workspace Polish
 - **Antrean Berkas Markdown Fleksibel**: Mendukung unggah banyak file Markdown sekaligus (hingga 10 berkas) dengan panel antrean interaktif, indikator ukuran/status, tombol seleksi cepat, dan ekspor batch ke `.zip` file DOCX.
 - **Manajemen State Berkas Asli vs Template (UX Restoration)**: Ketika template contoh dimuat, sistem menyimpan berkas asli pengguna secara otomatis, memunculkan badge `[Mode Template]`, dan menyediakan tombol `"↩️ Kembali ke Berkas Saya"` untuk pemulihan instan.
 - **Chunking Cerdas Berbasis Paragraf (Anti-Truncate)**: Memecah teks besar dengan menjaga keutuhan paragraf dan kalimat agar tidak terpotong di tengah jalan (misal: bab panjang tidak terpotong di bab 1.2).
 - **Proteksi Overflow Nama File**: Penanganan nama file panjang dengan truncating dan tooltip informatif agar tidak menembus batas kotak kontainer.
 - **Tata Letak Panel Ergonomis**: Struktur grid 12-kolom seimbang yang menghilangkan ruang kosong tak terpakai dan memberikan margin kerja yang lega antara panel kontrol dan editor Markdown.
 
-### 16. 💻 Desktop Native & Offline
+### 17. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---

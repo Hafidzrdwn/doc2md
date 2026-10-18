@@ -419,6 +419,20 @@ async function previewOrDownloadHtml(text, rawName, openInTab = false) {
         return;
     }
     const safeName = (rawName.trim() || 'dokumen').replace(/\.html?$/i, '');
+
+    if (window.Doc2MDProgress) {
+        window.Doc2MDProgress.show({
+            title: openInTab ? 'Membuka Pratinjau HTML' : 'Membuat Dokumen HTML',
+            subtitle: 'Menyusun naskah HTML standalone dengan KaTeX & Mermaid...',
+            badge: 'HTML',
+            tip: 'Engine merender sintaks Markdown ke struktur HTML siap cetak.',
+            simulated: true,
+            targetPercent: 90,
+            duration: 1000,
+            step: 'Mengirim naskah ke server...'
+        });
+    }
+
     try {
         const fd = new FormData();
         fd.append('markdown_text', text);
@@ -434,10 +448,27 @@ async function previewOrDownloadHtml(text, rawName, openInTab = false) {
         } else {
             triggerDownload(htmlBlob, `${safeName}.html`);
         }
+
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.complete({
+                title: openInTab ? 'Pratinjau HTML Terbuka!' : 'HTML Berhasil Diunduh!',
+                subtitle: `${safeName}.html`,
+                message: openInTab ? 'Dokumen HTML telah dibuka pada tab peramban baru.' : 'Dokumen HTML berhasil diunduh.',
+                autoHideMs: 1200
+            });
+        }
     } catch (e) {
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.error({
+                title: 'Gagal Memproses HTML',
+                message: e.message
+            });
+            setTimeout(() => window.Doc2MDProgress.hide(), 2500);
+        }
         alert('Gagal menghasilkan dokumen HTML: ' + e.message);
     }
 }
+
 
 // Export PDF Button
 if (generatePdfBtn) {
@@ -521,19 +552,31 @@ if (batchConvertQueueBtn) {
         const origText = batchConvertQueueBtnText ? batchConvertQueueBtnText.textContent : 'Konversi Seluruh Antrean Berkas (.ZIP)';
         if (batchConvertQueueBtnText) batchConvertQueueBtnText.textContent = `Mengonversi ${mdFileQueue.length} Berkas ke ${formatLabel}...`;
 
-        try {
-            // Sync active item before building payload
-            if (activeQueueId && mdInputArea) {
-                const curItem = mdFileQueue.find(q => q.id === activeQueueId);
-                if (curItem) {
-                    curItem.content = mdInputArea.value;
-                    if (targetDocxName && targetDocxName.value.trim()) {
-                        const val = targetDocxName.value.trim();
-                        curItem.name = val.endsWith('.md') ? val : `${val}.md`;
-                    }
+        // Sync active item before building payload
+        if (activeQueueId && mdInputArea) {
+            const curItem = mdFileQueue.find(q => q.id === activeQueueId);
+            if (curItem) {
+                curItem.content = mdInputArea.value;
+                if (targetDocxName && targetDocxName.value.trim()) {
+                    const val = targetDocxName.value.trim();
+                    curItem.name = val.endsWith('.md') ? val : `${val}.md`;
                 }
             }
+        }
 
+        // Show live progress modal with item checklist
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.show({
+                title: `Batch Konversi ${mdFileQueue.length} Berkas (.ZIP)`,
+                subtitle: `Mengonversi antrean ke format ${formatLabel}...`,
+                badge: formatLabel,
+                tip: 'Setiap berkas diproses secara independen dan dikemas ke dalam arsip ZIP.',
+                items: mdFileQueue.map(q => q.name || 'Dokumen'),
+                step: `Menghubungkan ke engine konversi ${formatLabel}...`
+            });
+        }
+
+        try {
             const payload = {
                 format: selectedFormat,
                 items: mdFileQueue.map((q, idx) => ({
@@ -543,7 +586,7 @@ if (batchConvertQueueBtn) {
                 }))
             };
 
-            const res = await fetch('/batch-md-export-zip', {
+            const res = await fetch('/batch-md-export-stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -551,20 +594,115 @@ if (batchConvertQueueBtn) {
 
             if (!res.ok) throw new Error(await res.text());
 
-            const blob = await res.blob();
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '_');
-            const filePrefix = selectedFormat === 'both' ? 'batch_export' : `batch_${selectedFormat}`;
-            triggerDownload(blob, `${filePrefix}_${timestamp}.zip`);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            let completeData = null;
 
-            const warnings = res.headers.get('X-Conversion-Warnings');
-            if (warnings) {
-                alert(`Arsip ZIP berhasil diunduh, namun terdapat catatan kendala pada sebagian berkas:\n\n${warnings}\n\nPeriksa berkas CATATAN_KENDALA_KONVERSI.txt di dalam ZIP untuk rincian.`);
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // keep trailing incomplete line
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const event = JSON.parse(line);
+                        if (event.type === 'start') {
+                            if (window.Doc2MDProgress) {
+                                window.Doc2MDProgress.update({
+                                    percent: event.percent || 5,
+                                    step: event.message
+                                });
+                            }
+                        } else if (event.type === 'item_start') {
+                            if (window.Doc2MDProgress) {
+                                window.Doc2MDProgress.update({
+                                    percent: event.percent,
+                                    step: event.message
+                                });
+                                window.Doc2MDProgress.updateItem(event.index, {
+                                    status: 'processing',
+                                    message: 'Merender...'
+                                });
+                            }
+                        } else if (event.type === 'item_skip') {
+                            if (window.Doc2MDProgress) {
+                                window.Doc2MDProgress.updateItem(event.index, {
+                                    status: 'skip',
+                                    message: 'Kosong'
+                                });
+                            }
+                        } else if (event.type === 'item_done') {
+                            if (window.Doc2MDProgress) {
+                                window.Doc2MDProgress.update({
+                                    percent: event.percent,
+                                    step: event.message
+                                });
+                                window.Doc2MDProgress.updateItem(event.index, {
+                                    status: event.status === 'error' ? 'error' : 'success',
+                                    message: event.status === 'error' ? '⚠ Kendala' : '✓ Selesai'
+                                });
+                            }
+                            if (mdFileQueue[event.index]) {
+                                mdFileQueue[event.index].status = event.status === 'error' ? 'error' : 'done';
+                                renderQueue();
+                            }
+                        } else if (event.type === 'packaging') {
+                            if (window.Doc2MDProgress) {
+                                window.Doc2MDProgress.update({
+                                    percent: event.percent || 96,
+                                    step: event.message
+                                });
+                            }
+                        } else if (event.type === 'complete') {
+                            completeData = event;
+                        } else if (event.type === 'error') {
+                            throw new Error(event.message || 'Gagal memproses batch');
+                        }
+                    } catch (pe) {
+                        if (pe.message && pe.message.includes('Gagal memproses batch')) throw pe;
+                        console.warn('Gagal mem-parse NDJSON stream:', line, pe);
+                    }
+                }
             }
 
-            // Mark all items in queue as done
-            mdFileQueue.forEach(q => q.status = 'done');
-            renderQueue();
+            if (completeData && completeData.download_url) {
+                // Trigger download from the temporary tokenized download endpoint
+                const downloadLink = document.createElement('a');
+                downloadLink.href = completeData.download_url;
+                downloadLink.download = completeData.filename || 'batch_export.zip';
+                downloadLink.click();
+
+                if (window.Doc2MDProgress) {
+                    window.Doc2MDProgress.complete({
+                        title: 'Batch Konversi Selesai!',
+                        subtitle: `${completeData.file_count} dokumen berhasil dikemas ke dalam ZIP.`,
+                        message: 'Arsip .ZIP telah berhasil diunduh ke perangkat.',
+                        autoHideMs: 1600
+                    });
+                }
+
+                if (completeData.warnings) {
+                    setTimeout(() => {
+                        alert(`Arsip ZIP berhasil diunduh, namun terdapat catatan kendala pada sebagian berkas:\n\n${completeData.warnings}\n\nPeriksa berkas CATATAN_KENDALA_KONVERSI.txt di dalam ZIP untuk rincian.`);
+                    }, 1200);
+                }
+            } else {
+                throw new Error('Tidak menerima informasi penyelesaian arsip dari server.');
+            }
         } catch (err) {
+            if (window.Doc2MDProgress) {
+                window.Doc2MDProgress.error({
+                    title: 'Gagal Konversi Batch',
+                    subtitle: 'Terjadi kendala saat memproses antrean berkas',
+                    message: err.message
+                });
+                setTimeout(() => window.Doc2MDProgress.hide(), 3000);
+            }
             alert('Gagal mengonversi antrean berkas: ' + err.message);
         } finally {
             batchConvertQueueBtn.disabled = false;

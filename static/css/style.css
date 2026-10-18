@@ -41,6 +41,17 @@ code, pre, textarea.font-mono, .font-mono {
     animation: pulse-subtle 2s infinite ease-in-out;
 }
 
+@keyframes progress-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.progress-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: progress-shimmer 1.8s infinite linear;
+}
+
 /* High-Performance 60fps Scrolling & Virtualized Rendering */
 #mdLivePreview, #mdInputArea, #outputArea, #diffSideBySideContainer, #diffUnifiedContainer {
     contain: layout style;

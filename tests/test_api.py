@@ -164,4 +164,38 @@ def test_batch_md_export_zip_formats():
     assert res_empty.status_code == 500
 
 
+def test_batch_md_export_stream_endpoint():
+    import json
+    items = [
+        {"filename": "stream1.md", "markdown": "# Dokumen Stream 1", "theme": "modern_slate"},
+        {"filename": "stream2.md", "markdown": "# Dokumen Stream 2", "theme": "modern_slate"}
+    ]
+    response = client.post(
+        "/batch-md-export-stream",
+        json={"items": items, "format": "docx"}
+    )
+    assert response.status_code == 200
+    assert "application/x-ndjson" in response.headers["content-type"]
+
+    events = [json.loads(line) for line in response.text.strip().split("\n") if line.strip()]
+    event_types = [e["type"] for e in events]
+    assert "start" in event_types
+    assert "item_start" in event_types
+    assert "item_done" in event_types
+    assert "packaging" in event_types
+    assert "complete" in event_types
+
+    complete_event = next(e for e in events if e["type"] == "complete")
+    assert complete_event["percent"] == 100
+    assert "download_url" in complete_event
+
+    # Test downloading via token
+    dl_url = complete_event["download_url"]
+    dl_res = client.get(dl_url)
+    assert dl_res.status_code == 200
+    assert dl_res.headers["content-type"] == "application/zip"
+    assert len(dl_res.content) > 0
+
+
+
 

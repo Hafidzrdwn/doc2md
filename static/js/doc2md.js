@@ -37,8 +37,11 @@ if (dropzone) {
 if (fileInput) fileInput.addEventListener('change', (e) => { if (e.target.files.length) upload(e.target.files); });
 
 async function upload(files) {
+    const fileArray = Array.from(files);
+    if (!fileArray.length) return;
+
     const fd = new FormData();
-    for (let f of files) fd.append('files', f);
+    for (let f of fileArray) fd.append('files', f);
     fd.append('chunk_tokens', chunkSelect ? chunkSelect.value : '0');
     fd.append('frontmatter_preset', frontmatterSelect ? frontmatterSelect.value : 'none');
 
@@ -46,7 +49,21 @@ async function upload(files) {
     if (dropzoneLoading) dropzoneLoading.classList.remove('hidden');
     if (dropzone) dropzone.classList.add('pointer-events-none', 'border-sky-500/60');
     if (quickStatusBadge) { quickStatusBadge.textContent = 'Memproses...'; quickStatusBadge.className = 'text-sky-400 font-medium animate-pulse'; }
-    if (uploadStatusText) uploadStatusText.textContent = `Mengonversi ${files.length} dokumen...`;
+    if (uploadStatusText) uploadStatusText.textContent = `Mengonversi ${fileArray.length} dokumen...`;
+
+    if (window.Doc2MDProgress) {
+        window.Doc2MDProgress.show({
+            title: `Mengekstrak ${fileArray.length} Dokumen ke Markdown`,
+            subtitle: 'Membaca dokumen, mendeteksi tabel, gambar, dan menjalankan OCR bila diperlukan...',
+            badge: 'EKSTRAKSI',
+            tip: 'Engine PyMuPDF & python-docx memproses dokumen secara lokal 100% offline.',
+            items: fileArray.map(f => f.name),
+            simulated: true,
+            targetPercent: 92,
+            duration: Math.max(1500, fileArray.length * 1200),
+            step: `Mengirim ${fileArray.length} berkas ke engine ekstraksi...`
+        });
+    }
 
     try {
         const res = await fetch('/convert', { method: 'POST', body: fd });
@@ -55,17 +72,50 @@ async function upload(files) {
         const errors = (data.results || []).filter(r => r.status === 'error');
 
         if (errors.length > 0 && newSuccess.length === 0) {
+            if (window.Doc2MDProgress) {
+                window.Doc2MDProgress.error({
+                    title: 'Gagal Mengekstrak Dokumen',
+                    message: errors.map(e => e.filename + ': ' + e.error).join(', ')
+                });
+                setTimeout(() => window.Doc2MDProgress.hide(), 3000);
+            }
             alert(`Gagal memproses file:\n${errors.map(e => e.filename + ': ' + e.error).join('\n')}`);
             return;
         }
-        if (!newSuccess.length) { alert('Gagal memproses file. Pastikan format didukung.'); return; }
+        if (!newSuccess.length) {
+            if (window.Doc2MDProgress) {
+                window.Doc2MDProgress.error({
+                    title: 'Gagal Memproses Dokumen',
+                    message: 'Format tidak didukung atau berkas tidak dapat dibaca.'
+                });
+                setTimeout(() => window.Doc2MDProgress.hide(), 2500);
+            }
+            alert('Gagal memproses file. Pastikan format didukung.');
+            return;
+        }
 
         converted = [...converted, ...newSuccess];
         activeIdx = converted.length - newSuccess.length;
         activeChunkIdx = -1;
         syncGlobalDocState();
         renderAll();
+
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.complete({
+                title: 'Ekstraksi Selesai!',
+                subtitle: `${newSuccess.length} dokumen siap diedit & diekspor.`,
+                message: `Berhasil mengekstrak ${newSuccess.length} dokumen ke Markdown.`,
+                autoHideMs: 1200
+            });
+        }
     } catch (err) {
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.error({
+                title: 'Kesalahan Unggah',
+                message: err.message
+            });
+            setTimeout(() => window.Doc2MDProgress.hide(), 2500);
+        }
         alert('Terjadi kesalahan saat mengunggah: ' + err.message);
     } finally {
         if (dropzoneNormal) dropzoneNormal.classList.remove('hidden');
@@ -314,6 +364,21 @@ if (exportAllZipBtn) {
         exportAllZipBtn.disabled = true;
         const orig = exportAllZipBtnText ? exportAllZipBtnText.textContent : 'Batch Unduh (.ZIP)';
         if (exportAllZipBtnText) exportAllZipBtnText.textContent = 'Mengemas ZIP...';
+
+        if (window.Doc2MDProgress) {
+            window.Doc2MDProgress.show({
+                title: 'Mengemas Naskah Markdown (.ZIP)',
+                subtitle: `Mengemas ${converted.length} dokumen Markdown beserta chunk dan gambar...`,
+                badge: 'ZIP',
+                tip: 'Arsip ZIP disusun di memori server dan dikompresi dengan format DEFLATE.',
+                items: converted.map(c => c.filename),
+                simulated: true,
+                targetPercent: 92,
+                duration: 1200,
+                step: 'Mengumpulkan naskah Markdown dan metadata...'
+            });
+        }
+
         try {
             const res = await fetch('/download-batch-zip', {
                 method: 'POST',
@@ -323,8 +388,25 @@ if (exportAllZipBtn) {
             if (!res.ok) throw new Error(await res.text());
             const blob = await res.blob();
             const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '_');
-            triggerDownload(blob, `doc2md_batch_export_${timestamp}.zip`);
+            const zipName = `doc2md_batch_export_${timestamp}.zip`;
+            triggerDownload(blob, zipName);
+
+            if (window.Doc2MDProgress) {
+                window.Doc2MDProgress.complete({
+                    title: 'Arsip ZIP Berhasil Diunduh!',
+                    subtitle: zipName,
+                    message: `${converted.length} berkas berhasil dikemas ke dalam arsip ZIP.`,
+                    autoHideMs: 1400
+                });
+            }
         } catch (err) {
+            if (window.Doc2MDProgress) {
+                window.Doc2MDProgress.error({
+                    title: 'Gagal Mengemas ZIP',
+                    message: err.message
+                });
+                setTimeout(() => window.Doc2MDProgress.hide(), 2500);
+            }
             alert('Gagal mengunduh berkas ZIP: ' + err.message);
         } finally {
             exportAllZipBtn.disabled = false;
