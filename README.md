@@ -124,7 +124,20 @@
 - **Proteksi Overflow Nama File**: Penanganan nama file panjang dengan truncating dan tooltip informatif agar tidak menembus batas kotak kontainer.
 - **Tata Letak Panel Ergonomis**: Struktur grid 12-kolom seimbang yang menghilangkan ruang kosong tak terpakai dan memberikan margin kerja yang lega antara panel kontrol dan editor Markdown.
 
-### 17. 💻 Desktop Native & Offline
+### 18. 📊 Multi-Sheet Excel Selector & Dedicated Table Converter (`.xlsx`, `.xls`)
+- **Penyelesaian Dependensi & Engine Mandiri**: Mengintegrasikan `openpyxl` langsung ke runtime dan bundle PyInstaller, mengeliminasi error `MissingDependencyException`.
+- **Modal Interaktif Seleksi Sheet**: Saat berkas Excel dengan banyak lembar kerja diunggah, antarmuka otomatis menampilkan modal seleksi interaktif dengan master toggle *"Pilih Semua Sheet (All)"* serta checklist dinamis yang menampilkan nama sheet, nomor indeks, dan rincian baris serta kolom.
+- **Konversi Sebagian atau Seluruh Sheet**: Pengguna memiliki keleluasaan penuh untuk mengonversi seluruh sheet sekaligus atau hanya memilih sheet tertentu (misal: hanya sheet 1, atau sheet 1 dan 2).
+- **Format Tabel Markdown Rapi**: Mengonversi sel lembar kerja ke sintaks tabel Markdown GitHub-flavored lengkap dengan pemisah kolom (`|`), sanitasi karakter pipe (`&#124;`) dan newline internal sel, baris header otomatis, serta judul section sheet (`## Sheet: <Nama Sheet>`).
+- **Badge Status & Ekspor Terfokus**: Kartu dokumen menampilkan badge `📊 All Sheets` atau `📊 X Sheet`, dan fitur salin naskah maupun unduh `.md` / `.docx` / `.pdf` secara otomatis hanya menyertakan sheet yang dipilih pengguna.
+
+### 19. 📝 Intelligent Auto-Structuring Engine untuk Dokumen & PDF
+- **Deteksi Otomatis Judul Bab & Modul**: Mengenali format bab akademik dan modul pelatihan (`BAB I`, `CHAPTER 1`, `MODUL 2`) dan otomatis memformatnya menjadi heading Markdown tingkat pertama (`# BAB I: <Judul>`).
+- **Heading Hirarki Bertingkat**: Mengonversi penomoran subbab (`1.1 Latar Belakang` -> `## 1.1 Latar Belakang`, `2.3.1 Analisis Data` -> `### 2.3.1 Analisis Data`) dan judul bagian standar (`PENDAHULUAN`, `KESIMPULAN`, `DAFTAR PUSTAKA`, dll.) ke Markdown headings (`#`, `##`, `###`).
+- **Fenced Code Blocks Otomatis**: Mendeteksi naskah skrip/kode pemrograman (`def `, `import `, `class `, `console.log(`, `function `, SQL queries, Bash commands) dan otomatis membungkusnya dalam syntax block Markdown berpagar (```` ```python ````, ``` ```javascript ````, dll.).
+- **Normalisasi Bullet Points & Tabel Spasi**: Mengonversi simbol bullet mentah (`•`, `·`, `o`, `–`, `—`) menjadi list Markdown standar (`- `) dan merestrukturisasi baris tabular bertab menjadi tabel Markdown yang bersih.
+
+### 20. 💻 Desktop Native & Offline
 - Dapat dijalankan sebagai aplikasi desktop native tanpa internet menggunakan `flaskwebgui` dan Chromium/Chrome/Edge.
 
 ---
@@ -296,9 +309,9 @@ Skrip ini akan otomatis membuat pintasan `Doc2MD.lnk` di:
 
 | Format | Ekstensi | Keterangan |
 | :--- | :--- | :--- |
-| **PDF** | `.pdf` | Ekstraksi teks lengkap + Deteksi konteks gambar |
+| **PDF** | `.pdf` | Ekstraksi teks lengkap + Deteksi konteks gambar + Auto-structuring Markdown (Bab, Heading, Code, List) |
 | **Microsoft Word** | `.docx` | Dukungan konversi dua arah (baca & buat DOCX) |
-| **Microsoft Excel** | `.xlsx`, `.xls` | Ekstraksi tabel data ke format tabel Markdown |
+| **Microsoft Excel** | `.xlsx`, `.xls` | Ekstraksi tabel data ke Markdown + Seleksi multi-sheet interaktif (Semua atau sheet tertentu) |
 | **PowerPoint** | `.pptx` | Ekstraksi teks per slide presentasi |
 | **Delimited / Text** | `.csv`, `.txt`, `.md` | Konversi teks mentah & tabel data |
 | **Data Terstruktur** | `.json`, `.xml`, `.html` | Ekstraksi konten semantik |

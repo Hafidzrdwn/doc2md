@@ -12,6 +12,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 from core.converter import (
     ALLOWED_EXTENSIONS,
     convert_file_to_markdown_with_assets,
+    inspect_excel_sheets,
 )
 from core.chunker import count_tokens, chunk_by_tokens
 from core.frontmatter_formatter import attach_frontmatter
@@ -21,14 +22,64 @@ logger = logging.getLogger("doc2md.converter")
 router = APIRouter(tags=["converter"])
 
 
+@router.post("/inspect-excel-sheets")
+async def inspect_excel_sheets_endpoint(file: UploadFile = File(...)):
+    """Inspects an uploaded Excel file and returns the list of worksheets and dimensions."""
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in [".xlsx", ".xls"]:
+        return {"filename": file.filename, "is_excel": False, "sheets": []}
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_file:
+            shutil.copyfileobj(file.file, temp_file)
+            temp_path = temp_file.name
+
+        sheets = inspect_excel_sheets(temp_path)
+        return {
+            "filename": file.filename,
+            "is_excel": True,
+            "sheet_count": len(sheets),
+            "sheets": sheets
+        }
+    except Exception as exc:
+        logger.error(f"Gagal memeriksa sheet Excel {file.filename}: {exc}")
+        return {
+            "filename": file.filename,
+            "is_excel": True,
+            "sheet_count": 0,
+            "sheets": [],
+            "error": str(exc)
+        }
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+
+
 @router.post("/convert")
 async def convert_endpoint(
     files: List[UploadFile] = File(...),
     chunk_tokens: int = Form(default=0),
-    frontmatter_preset: str = Form(default="none")
+    frontmatter_preset: str = Form(default="none"),
+    selected_sheets: str = Form(default="all")
 ):
     """Converts uploaded documents into clean, token-counted Markdown."""
     results = []
+
+    parsed_sheets = None
+    if selected_sheets and selected_sheets.strip().lower() != "all":
+        try:
+            import json
+            if selected_sheets.strip().startswith("["):
+                parsed_sheets = json.loads(selected_sheets)
+            else:
+                parsed_sheets = [s.strip() for s in selected_sheets.split(",") if s.strip()]
+        except Exception:
+            parsed_sheets = [s.strip() for s in selected_sheets.split(",") if s.strip()]
+
 
     for file in files:
         ext = os.path.splitext(file.filename)[1].lower()
@@ -47,7 +98,9 @@ async def convert_endpoint(
                 temp_path = temp_file.name
 
             raw_size = os.path.getsize(temp_path)
-            markdown_content, extracted_images = convert_file_to_markdown_with_assets(temp_path, file.filename)
+            markdown_content, extracted_images = convert_file_to_markdown_with_assets(
+                temp_path, file.filename, selected_sheets=parsed_sheets
+            )
 
             if frontmatter_preset and frontmatter_preset.strip().lower() != "none":
                 raw_tokens = count_tokens(markdown_content)
@@ -76,7 +129,8 @@ async def convert_endpoint(
                 "chunks": chunks,
                 "images_count": len(extracted_images),
                 "images": [img.to_dict() for img in extracted_images],
-                "is_ocr": is_ocr
+                "is_ocr": is_ocr,
+                "selected_sheets": parsed_sheets if parsed_sheets else ["all"]
             })
         except Exception as exc:
             logger.error(f"Gagal mengonversi file {file.filename}: {exc}", exc_info=True)

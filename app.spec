@@ -10,16 +10,23 @@ lxml_datas, lxml_binaries, lxml_hiddenimports = collect_all('lxml')
 mammoth_datas, mammoth_binaries, mammoth_hiddenimports = collect_all('mammoth')
 cobble_datas, cobble_binaries, cobble_hiddenimports = collect_all('cobble')
 pymdownx_datas, pymdownx_binaries, pymdownx_hiddenimports = collect_all('pymdownx')
+openpyxl_datas, openpyxl_binaries, openpyxl_hiddenimports = collect_all('openpyxl')
 
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=pdfminer_binaries + pypdfium2_binaries + pdfplumber_binaries + docx_binaries + lxml_binaries + mammoth_binaries + cobble_binaries + pymdownx_binaries,
+    binaries=pdfminer_binaries + pypdfium2_binaries + pdfplumber_binaries + docx_binaries + lxml_binaries + mammoth_binaries + cobble_binaries + pymdownx_binaries + openpyxl_binaries,
     datas=[
         ('templates', 'templates'),
         ('static', 'static'),
-    ] + pdfminer_datas + pypdfium2_datas + pdfplumber_datas + docx_datas + lxml_datas + mammoth_datas + cobble_datas + pymdownx_datas,
+    ] + pdfminer_datas + pypdfium2_datas + pdfplumber_datas + docx_datas + lxml_datas + mammoth_datas + cobble_datas + pymdownx_datas + openpyxl_datas,
     hiddenimports=[
+        # ── openpyxl / Excel ─────────────────────────────────────────────────
+        'openpyxl',
+        'openpyxl.reader.excel',
+        'openpyxl.worksheet.worksheet',
+        'openpyxl.cell._writer',
+        'et_xmlfile',
         # ── tiktoken ─────────────────────────────────────────────────────────
         'tiktoken',
         'tiktoken.core',

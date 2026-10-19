@@ -34,16 +34,158 @@ if (dropzone) {
     });
 }
 
-if (fileInput) fileInput.addEventListener('change', (e) => { if (e.target.files.length) upload(e.target.files); });
+async function inspectExcelSheets(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+        const res = await fetch('/inspect-excel-sheets', { method: 'POST', body: fd });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (e) {
+        console.warn('Gagal memeriksa sheet Excel:', e);
+        return null;
+    }
+}
+
+function promptExcelSheetModal(file, info) {
+    return new Promise((resolve) => {
+        const modal = el('excelSheetModal');
+        const countBadge = el('excelSheetCountBadge');
+        const modalFileName = el('excelModalFileName');
+        const selectAllCb = el('excelSelectAllCheckbox');
+        const selectedCountText = el('excelSelectedCountText');
+        const listContainer = el('excelSheetList');
+        const cancelBtn = el('excelSheetCancelBtn');
+        const convertBtn = el('excelSheetConvertBtn');
+
+        if (!modal || !listContainer) {
+            resolve('all');
+            return;
+        }
+
+        modalFileName.textContent = info.filename || file.name;
+        countBadge.textContent = `${info.sheet_count} Sheet`;
+        selectAllCb.checked = true;
+
+        listContainer.innerHTML = '';
+        (info.sheets || []).forEach((sheet, idx) => {
+            const item = document.createElement('label');
+            item.className = 'flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-emerald-500/50 hover:bg-emerald-950/20 cursor-pointer transition select-none group';
+
+            const rowColText = (sheet.max_row && sheet.max_column)
+                ? `${sheet.max_row} baris × ${sheet.max_column} kol`
+                : `Sheet #${idx + 1}`;
+
+            item.innerHTML = `
+                <div class="flex items-center gap-3 min-w-0">
+                    <input type="checkbox" value="${escapeHtml(sheet.name)}" class="excel-sheet-item-cb w-4 h-4 rounded bg-slate-900 border-slate-700 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-slate-900 cursor-pointer" checked>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-semibold text-slate-200 group-hover:text-emerald-300 truncate">${escapeHtml(sheet.name)}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">Index #${idx + 1}</span>
+                    </div>
+                </div>
+                <div class="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+                    ${rowColText}
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+
+        const getCheckboxes = () => Array.from(listContainer.querySelectorAll('.excel-sheet-item-cb'));
+
+        function updateSelectionState() {
+            const cbs = getCheckboxes();
+            const checkedCount = cbs.filter(c => c.checked).length;
+
+            if (checkedCount === cbs.length) {
+                selectAllCb.checked = true;
+                selectAllCb.indeterminate = false;
+                selectedCountText.textContent = 'Semua sheet dipilih';
+            } else if (checkedCount === 0) {
+                selectAllCb.checked = false;
+                selectAllCb.indeterminate = false;
+                selectedCountText.textContent = '0 sheet dipilih';
+            } else {
+                selectAllCb.checked = false;
+                selectAllCb.indeterminate = true;
+                selectedCountText.textContent = `${checkedCount} dari ${cbs.length} sheet dipilih`;
+            }
+
+            if (convertBtn) {
+                convertBtn.disabled = (checkedCount === 0);
+                convertBtn.classList.toggle('opacity-50', checkedCount === 0);
+                convertBtn.classList.toggle('pointer-events-none', checkedCount === 0);
+            }
+        }
+
+        selectAllCb.onchange = () => {
+            const isChecked = selectAllCb.checked;
+            getCheckboxes().forEach(cb => cb.checked = isChecked);
+            updateSelectionState();
+        };
+
+        listContainer.onchange = (e) => {
+            if (e.target && e.target.classList.contains('excel-sheet-item-cb')) {
+                updateSelectionState();
+            }
+        };
+
+        function cleanup() {
+            modal.classList.add('hidden');
+            cancelBtn.onclick = null;
+            convertBtn.onclick = null;
+            selectAllCb.onchange = null;
+            listContainer.onchange = null;
+        }
+
+        cancelBtn.onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        convertBtn.onclick = () => {
+            const cbs = getCheckboxes();
+            const checked = cbs.filter(c => c.checked).map(c => c.value);
+            cleanup();
+            if (checked.length === cbs.length) {
+                resolve('all');
+            } else {
+                resolve(checked);
+            }
+        };
+
+        updateSelectionState();
+        modal.classList.remove('hidden');
+    });
+}
 
 async function upload(files) {
     const fileArray = Array.from(files);
     if (!fileArray.length) return;
 
+    let selectedSheetsParam = 'all';
+
+    // If Excel file is detected, check sheets
+    const excelFiles = fileArray.filter(f => /\.(xlsx|xls)$/i.test(f.name));
+    if (excelFiles.length === 1) {
+        if (quickStatusBadge) { quickStatusBadge.textContent = 'Memeriksa Sheet...'; quickStatusBadge.className = 'text-emerald-400 font-medium animate-pulse'; }
+        const info = await inspectExcelSheets(excelFiles[0]);
+        if (info && info.sheet_count > 1) {
+            const chosen = await promptExcelSheetModal(excelFiles[0], info);
+            if (chosen === null) {
+                if (fileInput) fileInput.value = '';
+                if (quickStatusBadge) { quickStatusBadge.textContent = 'Siap'; quickStatusBadge.className = 'text-emerald-400 font-medium'; }
+                return;
+            }
+            selectedSheetsParam = (chosen === 'all') ? 'all' : JSON.stringify(chosen);
+        }
+    }
+
     const fd = new FormData();
     for (let f of fileArray) fd.append('files', f);
     fd.append('chunk_tokens', chunkSelect ? chunkSelect.value : '0');
     fd.append('frontmatter_preset', frontmatterSelect ? frontmatterSelect.value : 'none');
+    fd.append('selected_sheets', selectedSheetsParam);
 
     if (dropzoneNormal) dropzoneNormal.classList.add('hidden');
     if (dropzoneLoading) dropzoneLoading.classList.remove('hidden');
@@ -148,6 +290,14 @@ function renderFileCards() {
 
         const ocrTag = item.is_ocr ? `<span class="bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium">🔍 OCR</span>` : '';
         const imgTag = (item.images_count && item.images_count > 0) ? `<span class="bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans">🖼️ ${item.images_count}</span>` : '';
+        const isExcel = /\.(xlsx|xls)$/i.test(item.filename);
+        let sheetTag = '';
+        if (isExcel && item.selected_sheets) {
+            const isAll = (item.selected_sheets.length === 1 && item.selected_sheets[0] === 'all') || item.selected_sheets.includes('all');
+            const label = isAll ? '📊 All Sheets' : `📊 ${item.selected_sheets.length} Sheet`;
+            const title = isAll ? 'Semua sheet dikonversi' : `Sheet: ${item.selected_sheets.join(', ')}`;
+            sheetTag = `<span class="bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded text-[10px] font-sans" title="${title}">${label}</span>`;
+        }
 
         card.innerHTML = `<div class="flex items-start justify-between gap-2">
             <div class="flex items-start gap-2 min-w-0 flex-1">
@@ -158,7 +308,7 @@ function renderFileCards() {
         </div>
         <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-1">
             <span>${item.raw_size_kb} KB</span>
-            <div class="flex items-center gap-1.5">${ocrTag}${imgTag}<span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span></div>
+            <div class="flex items-center gap-1.5">${ocrTag}${imgTag}${sheetTag}<span class="text-emerald-400 font-semibold">${item.token_count.toLocaleString()} tokens</span></div>
         </div>`;
 
         card.onclick = (e) => {
